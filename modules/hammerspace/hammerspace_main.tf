@@ -397,15 +397,3 @@ resource "aws_volume_attachment" "dsx_data_vol_attach" {
   instance_id = aws_instance.dsx[count.index].id
   volume_id   = aws_ebs_volume.dsx_data_vol[count.index].id
 }
-
-# Add existing user "michael.kade2" to the admin group if created and enabled
-resource "aws_iam_user_group_membership" "michael_kade2_existing_user_admin_membership" {
-  count = local.create_iam_admin_group && local.enable_iam_admin_group ? 1 : 0
-
-  user = "michael.kade2"
-
-  groups = [
-    aws_iam_group.admin_group[0].name
-  ]
-  depends_on = [aws_iam_group.admin_group]
-}
