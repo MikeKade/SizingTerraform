@@ -36,7 +36,11 @@ variable "tags" {
 variable "project_name" {
   description = "Project name for tagging"
   type        = string
-  default     = "AWS-Sizing"
+  default     = ""
+  validation {
+    condition     = var.project_name != ""
+    error_message = "Project must have a name"
+  }
 }
 
 variable "ssh_keys_dir" {
@@ -133,7 +137,7 @@ variable "clients_target_user" {
 # STORAGE-SPECIFIC VARIABLES (WITH storage_ PREFIX)
 
 variable "storage_instance_count" {
-  description = "Number of client instances"
+  description = "Number of client instances" # Note: description says client, might be storage
   type        = number
   default     = 1
 }
@@ -205,11 +209,98 @@ variable "storage_target_user" {
 
 variable "storage_raid_level" {
   description = "RAID level to configure (raid-0, raid-5, or raid-6)"
-  type	      = string
+  type        = string
   default     = "raid-5"
 
   validation {
-    condition	  = contains(["raid-0", "raid-5", "raid-6"], var.storage_raid_level)
+    condition     = contains(["raid-0", "raid-5", "raid-6"], var.storage_raid_level)
     error_message = "RAID level must be one of: raid-0, raid-5, or raid-6"
   }
+}
+
+# Hammerspace-specific variables
+
+variable "hammerspace_ami" {
+  description = "AMI ID for Hammerspace instances"
+  type        = string
+  default     = "ami-04add4f19d296b3e7"
+}
+
+variable "hammerspace_iam_admin_group_id" {
+  description = "IAM admin group ID for SSH access (can be existing group name or blank to create new)"
+  type        = string
+  default     = ""
+}
+
+variable "hammerspace_anvil_count" {
+  description = "Number of Anvil instances to deploy (0=none, 1=standalone, 2=HA)"
+  type        = number
+  default     = 0 # Defaulting to 0 as per your example, means not deployed by default
+  validation {
+    condition     = var.hammerspace_anvil_count >= 0 && var.hammerspace_anvil_count <= 2
+    error_message = "anvil count must be 0, 1 (standalone), or 2 (HA)"
+  }
+}
+
+variable "hammerspace_anvil_instance_type" {
+  description = "Instance type for Anvil metadata server"
+  type        = string
+  default     = "m5zn.12xlarge"
+}
+
+variable "hammerspace_dsx_instance_type" {
+  description = "Instance type for DSX nodes"
+  type        = string
+  default     = "m5.xlarge"
+}
+
+variable "hammerspace_dsx_count" {
+  description = "Number of DSX instances"
+  type        = number
+  default     = 1
+}
+
+variable "hammerspace_anvil_meta_disk_size" {
+  description = "Metadata disk size in GB for Anvil"
+  type        = number
+  default     = 1000
+}
+
+variable "hammerspace_anvil_meta_disk_type" {
+  description = "Type of EBS volume for Anvil metadata disk (e.g., gp3, io2)"
+  type        = string
+  default     = "gp3"
+}
+
+variable "hammerspace_anvil_meta_disk_throughput" {
+  description = "Throughput for gp3 EBS volumes for the Anvil metadata disk (MiB/s)"
+  type        = number
+  default     = null # Let AWS use default for gp3 unless specified
+}
+
+variable "hammerspace_anvil_meta_disk_iops" {
+  description = "IOPS for gp3/io1/io2 EBS volumes for the Anvil metadata disk"
+  type        = number
+  default     = null # Let AWS use default for gp3 unless specified
+}
+
+variable "hammerspace_dsx_data_disk_size" {
+  description = "Data disk size in GB per DSX node"
+  type        = number
+  default     = 200
+}
+
+variable "hammerspace_dsx_add_vols" {
+  description = "Add non-boot EBS volumes as Hammerspace storage volumes"
+  type        = bool # Changed from string to bool
+  default     = true
+  # NOTE: Ensure the hammerspace module's 'dsx_add_vols' variable is also type = bool
+  # and its local 'local.dsx_add_volumes_bool' is updated to use it directly:
+  # local.dsx_add_volumes_bool = local.should_create_any_anvils && var.dsx_add_vols
+}
+
+variable "hammerspace_cluster_ip" {
+  description = "Predefined Cluster IP address for Anvil (optional for new, required for DSX-only to existing)"
+  type        = string
+  default     = ""
 }

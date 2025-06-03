@@ -1,14 +1,15 @@
 # Setup the provider
 
 provider "aws" {
-  region       = var.region
+  region = var.region
 }
 
 # Determine which components to deploy based on input list
 
 locals {
-  deploy_clients = contains(var.deploy_components, "all") || contains(var.deploy_components, "clients")
-  deploy_storage = contains(var.deploy_components, "all") || contains(var.deploy_components, "storage")
+  deploy_clients     = contains(var.deploy_components, "all") || contains(var.deploy_components, "clients")
+  deploy_storage     = contains(var.deploy_components, "all") || contains(var.deploy_components, "storage")
+  deploy_hammerspace = contains(var.deploy_components, "all") || contains(var.deploy_components, "hammerspace")
 }
 
 # Deploy the clients module if requested
@@ -19,30 +20,30 @@ module "clients" {
 
   # Global variables
 
-  region            = var.region
+  region              = var.region
   availability_zone = var.availability_zone
-  vpc_id            = var.vpc_id
-  subnet_id         = var.subnet_id
-  key_name          = var.key_name
-  tags              = var.tags
-  project_name      = var.project_name
-  ssh_keys_dir      = var.ssh_keys_dir
-  name_prefix       = var.instance_name_prefix
+  vpc_id              = var.vpc_id
+  subnet_id           = var.subnet_id
+  key_name            = var.key_name
+  tags                = var.tags
+  project_name        = var.project_name
+  ssh_keys_dir        = var.ssh_keys_dir
+  name_prefix         = var.instance_name_prefix
 
   # Client-specific variables (mapping prefixed root to unprefixed module variables)
 
-  instance_count    = var.clients_instance_count
-  ami               = var.clients_ami
-  instance_type     = var.clients_instance_type
-  boot_volume_size  = var.clients_boot_volume_size
-  boot_volume_type  = var.clients_boot_volume_type
-  ebs_count         = var.clients_ebs_count
-  ebs_size          = var.clients_ebs_size
-  ebs_type          = var.clients_ebs_type
-  ebs_throughput    = var.clients_ebs_throughput
-  ebs_iops          = var.clients_ebs_iops
-  user_data         = var.clients_user_data
-  target_user       = var.clients_target_user
+  instance_count   = var.clients_instance_count
+  ami              = var.clients_ami
+  instance_type    = var.clients_instance_type
+  boot_volume_size = var.clients_boot_volume_size
+  boot_volume_type = var.clients_boot_volume_type
+  ebs_count        = var.clients_ebs_count
+  ebs_size         = var.clients_ebs_size
+  ebs_type         = var.clients_ebs_type
+  ebs_throughput   = var.clients_ebs_throughput
+  ebs_iops         = var.clients_ebs_iops
+  user_data        = var.clients_user_data
+  target_user      = var.clients_target_user
 }
 
 # Deploy the storage_servers module if requested
@@ -53,29 +54,73 @@ module "storage_servers" {
 
   # Global variables
 
-  region            = var.region
+  region              = var.region
   availability_zone = var.availability_zone
-  vpc_id            = var.vpc_id
-  subnet_id         = var.subnet_id
-  key_name          = var.key_name
-  tags              = var.tags
-  project_name      = var.project_name
-  ssh_keys_dir      = var.ssh_keys_dir
-  name_prefix       = var.instance_name_prefix
+  vpc_id              = var.vpc_id
+  subnet_id           = var.subnet_id
+  key_name            = var.key_name
+  tags                = var.tags
+  project_name        = var.project_name
+  ssh_keys_dir        = var.ssh_keys_dir
+  name_prefix         = var.instance_name_prefix
 
   # Storage-specific variables (map root variables to unprefixed module variables)
 
-  instance_count    = var.storage_instance_count
-  ami               = var.storage_ami
-  instance_type     = var.storage_instance_type
-  boot_volume_size  = var.storage_boot_volume_size
-  boot_volume_type  = var.storage_boot_volume_type
-  raid_level	    = var.storage_raid_level
-  ebs_count         = var.storage_ebs_count
-  ebs_size          = var.storage_ebs_size
-  ebs_type          = var.storage_ebs_type
-  ebs_throughput    = var.storage_ebs_throughput
-  ebs_iops          = var.storage_ebs_iops
-  user_data         = var.storage_user_data
-  target_user       = var.storage_target_user
+  instance_count   = var.storage_instance_count
+  ami              = var.storage_ami
+  instance_type    = var.storage_instance_type
+  boot_volume_size = var.storage_boot_volume_size
+  boot_volume_type = var.storage_boot_volume_type
+  raid_level       = var.storage_raid_level
+  ebs_count        = var.storage_ebs_count
+  ebs_size         = var.storage_ebs_size
+  ebs_type         = var.storage_ebs_type
+  ebs_throughput   = var.storage_ebs_throughput
+  ebs_iops         = var.storage_ebs_iops
+  user_data        = var.storage_user_data
+  target_user      = var.storage_target_user
+}
+
+# Deploy the Anvil and/or DSX if requested
+
+module "hammerspace" {
+  count  = local.deploy_hammerspace ? 1 : 0
+  source = "./modules/hammerspace"
+
+  # Global variables (passed to the hammerspace module)
+  region              = var.region
+  availability_zone = var.availability_zone
+  vpc_id              = var.vpc_id
+  subnet_id           = var.subnet_id
+  key_name            = var.key_name
+  tags                = var.tags
+  project_name        = var.project_name
+  name_prefix         = var.instance_name_prefix
+
+  # Hammerspace-specific variables (passed to the hammerspace module)
+  ami                            = var.hammerspace_ami
+  iam_admin_group_id             = var.hammerspace_iam_admin_group_id
+
+  # iam_user_access is handled by a default in the module's variables.tf,
+  # can be overridden here if needed
+
+  # profile_id is handled by a default in the module's variables.tf, can
+  # be overridden here if needed
+  
+  # sec_ip_cidr is handled by a default in the module's variables.tf, can
+  # be overridden here if needed
+
+  anvil_count                  = var.hammerspace_anvil_count
+  anvil_type                   = var.hammerspace_anvil_instance_type
+  anvil_meta_disk_size         = var.hammerspace_anvil_meta_disk_size
+  anvil_meta_disk_type         = var.hammerspace_anvil_meta_disk_type
+  anvil_meta_disk_iops         = var.hammerspace_anvil_meta_disk_iops
+  anvil_meta_disk_throughput   = var.hammerspace_anvil_meta_disk_throughput
+
+  dsx_count                    = var.hammerspace_dsx_count
+  dsx_type                     = var.hammerspace_dsx_instance_type
+  dsx_data_disk_size           = var.hammerspace_dsx_data_disk_size
+  # dsx_data_disk_type, iops, throughput are handled by defaults in module, can be overridden
+  dsx_add_vols                 = var.hammerspace_dsx_add_vols # Ensure type matches module (bool vs string)
+  cluster_ip                   = var.hammerspace_cluster_ip
 }

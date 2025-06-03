@@ -1,0 +1,32 @@
+{
+  "node_index": "0",
+  "cluster": {
+    "password_auth": false
+  },
+  "aws": {
+    ${admin_config_param}
+  },
+  "nodes": {
+    "0": {
+      "hostname": "${stack_name_param}Anvil1",
+      "ha_mode": "Primary",
+      "features": ["metadata"],
+      "networks": {
+        "eth0": {
+          "roles": ["data", "mgmt", "ha"]
+        }
+      }
+    },
+    "1": {
+      "hostname": "${stack_name_param}Anvil2",
+      "ha_mode": "Secondary",
+      "features": ["metadata"],
+      "networks": {
+        "eth0": {
+          "roles": ["data", "mgmt", "ha"]
+          ${cluster_ip_config_param}
+        }
+      }
+    }
+  }
+}
