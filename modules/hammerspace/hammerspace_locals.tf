@@ -15,12 +15,11 @@ locals {
   # --- Mappings & Derived Values ---
   anvil_instance_type_actual = var.anvil_type
   dsx_instance_type_actual   = var.dsx_type
-  current_region_ami         = var.ami
+  current_region_ami         = var.ami # Using the direct var.ami as per previous correction
 
   # Common tags to be applied to all resources
   common_tags = merge(var.tags, {
-    Project = var.project_name # project_name is already part of common_tags via var.tags if passed correctly from root
-                               # This ensures Project tag is present even if var.tags doesn't have it.
+    Project = var.project_name
   })
 
   # IAM References
@@ -29,21 +28,19 @@ locals {
   effective_instance_profile_ref = local.create_profile ? (length(aws_iam_instance_profile.profile) > 0 ? aws_iam_instance_profile.profile[0].name : null) : var.profile_id
 
   # --- UserData Configuration ---
-  # local.resource_name_prefix is removed. We will use var.project_name directly for stack_name_param.
-
   anvil_sa_userdata_rendered = local.create_standalone_anvil ? templatefile("${path.module}/templates/anvil_sa.tftpl", {
-    stack_name_param   = var.project_name, # Changed from local.resource_name_prefix
+    stack_name_param   = var.project_name,
     admin_config_param = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
   }) : null
 
   anvil1_ha_userdata_rendered = local.create_ha_anvils ? templatefile("${path.module}/templates/anvil1_ha.tftpl", {
-    stack_name_param        = var.project_name, # Changed from local.resource_name_prefix
+    stack_name_param        = var.project_name,
     admin_config_param      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: \"${local.effective_iam_admin_group_name}\"" : "",
     cluster_ip_config_param = local.provides_cluster_ip ? ", cluster_ips: [\"${var.cluster_ip}\"]" : ""
   }) : null
 
   anvil2_ha_userdata_rendered = local.create_ha_anvils ? templatefile("${path.module}/templates/anvil2_ha.tftpl", {
-    stack_name_param        = var.project_name, # Changed from local.resource_name_prefix
+    stack_name_param        = var.project_name,
     admin_config_param      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: \"${local.effective_iam_admin_group_name}\"" : "",
     cluster_ip_config_param = local.provides_cluster_ip ? ", cluster_ips: [\"${var.cluster_ip}\"]" : ""
   }) : null
@@ -80,8 +77,8 @@ locals {
   )
 
   dsx_anvils_nodes_config_string = local.should_create_any_anvils ? (
-                                     local.create_ha_anvils ? "'1': {hostname: \"${var.project_name}Anvil1\", features: [metadata]}, '2': {hostname: \"${var.project_name}Anvil2\", features: [metadata]}" : # Changed prefix
-                                     (local.create_standalone_anvil ? "'1': {hostname: \"${var.project_name}Anvil\", features: [metadata]}" : "") # Changed prefix
+                                     local.create_ha_anvils ? "'1': {hostname: \"${var.project_name}Anvil1\", features: [metadata]}, '2': {hostname: \"${var.project_name}Anvil2\", features: [metadata]}" :
+                                     (local.create_standalone_anvil ? "'1': {hostname: \"${var.project_name}Anvil\", features: [metadata]}" : "")
                                    ) : ""
 
   dsx_user_data_template_vars_base = {
@@ -90,7 +87,7 @@ locals {
     add_volumes_str          = local.dsx_add_volumes_bool ? "True" : "False"
     admin_config_suffix      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
     anvils_config_for_dsx    = local.dsx_anvils_nodes_config_string
-    stack_name_param         = var.project_name # Changed from local.resource_name_prefix
+    stack_name_param         = var.project_name
   }
 
   dsx_node1_userdata_rendered = var.dsx_count > 0 ? templatefile("${path.module}/templates/dsx.tftpl", merge(
@@ -102,4 +99,10 @@ locals {
     volume_type = "gp3"
     volume_size = 200
   }
+
+  # ADDED device_letters local
+  device_letters = [
+    "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+  ]
 }

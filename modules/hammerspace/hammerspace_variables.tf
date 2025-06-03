@@ -71,7 +71,7 @@ variable "profile_id" {
 variable "anvil_count" {
   description = "Number of Anvil instances to deploy. 0 = no Anvils; 1 = Standalone; 2+ = HA (2-node)."
   type        = number
-  default     = 1 # Defaulting to 1 within the module if not overridden
+  default     = 1
 }
 
 variable "anvil_type" {
@@ -87,7 +87,7 @@ variable "dsx_type" {
 variable "dsx_count" {
   description = "Number of DSX instances to create (0-8)."
   type        = number
-  default     = 1 # Defaulting to 1 within the module if not overridden
+  default     = 1
 }
 
 variable "anvil_meta_disk_size" {
@@ -114,33 +114,43 @@ variable "anvil_meta_disk_throughput" {
   default     = null
 }
 
-variable "dsx_data_disk_size" {
-  description = "DSX Data Store Size per instance in GB."
+variable "dsx_ebs_size" { # RENAMED from dsx_data_disk_size
+  description = "Size of each EBS Data volume per DSX instance in GB."
   type        = number
   default     = 200
 }
 
-variable "dsx_data_disk_type" {
-  description = "DSX Data Disk type (e.g., 'gp2', 'gp3', 'io1', 'io2')."
+variable "dsx_ebs_type" { # RENAMED from dsx_data_disk_type
+  description = "Type of each EBS Data volume for DSX (e.g., 'gp2', 'gp3', 'io1', 'io2')."
   type        = string
   default     = "gp3"
 }
 
-variable "dsx_data_disk_iops" {
-  description = "IOPS for DSX data disk (required for io1/io2, optional for gp3)."
+variable "dsx_ebs_iops" { # RENAMED from dsx_data_disk_iops
+  description = "IOPS for each EBS Data volume for DSX (required for io1/io2, optional for gp3)."
   type        = number
   default     = null
 }
 
-variable "dsx_data_disk_throughput" {
-  description = "Throughput in MiB/s for DSX data disk (relevant for gp3)."
+variable "dsx_ebs_throughput" { # RENAMED from dsx_data_disk_throughput
+  description = "Throughput in MiB/s for each EBS Data volume for DSX (relevant for gp3)."
   type        = number
   default     = null
+}
+
+variable "dsx_ebs_count" { # This was previously dsx_data_volumes_per_instance
+  description = "Number of data EBS volumes to attach to each DSX instance."
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.dsx_ebs_count >= 0
+    error_message = "The number of data EBS volumes per DSX instance must be non-negative."
+  }
 }
 
 variable "dsx_add_vols" {
   description = "Add non-boot EBS volumes as Hammerspace storage volumes."
-  type        = bool   # Changed to bool to match your root variable
+  type        = bool
   default     = true
 }
 
@@ -166,4 +176,3 @@ variable "sec_ip_cidr" {
 
 data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
-# data "aws_region" "current" {} # This is implicitly available via provider or can be var.region

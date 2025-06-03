@@ -119,8 +119,11 @@ module "hammerspace" {
 
   dsx_count                    = var.hammerspace_dsx_count
   dsx_type                     = var.hammerspace_dsx_instance_type
-  dsx_data_disk_size           = var.hammerspace_dsx_data_disk_size
-  # dsx_data_disk_type, iops, throughput are handled by defaults in module, can be overridden
-  dsx_add_vols                 = var.hammerspace_dsx_add_vols # Ensure type matches module (bool vs string)
+  dsx_ebs_count 	       = var.hammerspace_dsx_ebs_count
+  dsx_ebs_size		       = var.hammerspace_dsx_ebs_size
+  dsx_ebs_type		       = var.hammerspace_dsx_ebs_type
+  dsx_ebs_iops		       = var.hammerspace_dsx_ebs_iops
+  dsx_ebs_throughput	       = var.hammerspace_dsx_ebs_throughput
+  dsx_add_vols                 = var.hammerspace_dsx_add_vols
   cluster_ip                   = var.hammerspace_cluster_ip
 }
