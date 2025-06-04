@@ -1,3 +1,5 @@
+# modules/hammerspace/hammerspace_outputs.tf
+
 output "management_ip" {
   description = "Management IP address for the Hammerspace cluster. This could be the ClusterIP parameter, or a secondary IP on Anvil2 for HA if not using ClusterIP, or Anvil's private IP for standalone."
   value       = local.management_ip_for_url
@@ -13,36 +15,40 @@ output "anvil_instances" {
   sensitive   = true
   value = local.create_standalone_anvil && length(aws_instance.anvil) > 0 ? [
     {
-      type        = "standalone"
-      id          = aws_instance.anvil[0].id
-      arn         = aws_instance.anvil[0].arn
-      private_ip  = aws_instance.anvil[0].private_ip
-      public_ip   = aws_instance.anvil[0].public_ip
-      key_name    = aws_instance.anvil[0].key_name
-      iam_profile = aws_instance.anvil[0].iam_instance_profile
+      type                       = "standalone"
+      id                         = aws_instance.anvil[0].id
+      arn                        = aws_instance.anvil[0].arn
+      private_ip                 = aws_instance.anvil[0].private_ip
+      public_ip                  = aws_instance.anvil[0].public_ip
+      key_name                   = aws_instance.anvil[0].key_name
+      iam_profile                = aws_instance.anvil[0].iam_instance_profile
+      all_private_ips_on_eni_set = toset([]) # Consistent type: empty set
+      floating_ip_candidate      = null      # Consistent type: null for string
     }
   ] : (local.create_ha_anvils ? [
-    {
-      type        = "ha_node1"
-      id          = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].id : null
-      arn         = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].arn : null
-      private_ip  = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].private_ip : null
-      public_ip   = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].public_ip : null
-      key_name    = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].key_name : null
-      iam_profile = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].iam_instance_profile : null
+    { # Anvil1
+      type                       = "ha_node1"
+      id                         = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].id : null
+      arn                        = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].arn : null
+      private_ip                 = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].private_ip : null
+      public_ip                  = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].public_ip : null
+      key_name                   = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].key_name : null
+      iam_profile                = length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].iam_instance_profile : null
+      all_private_ips_on_eni_set = toset([]) # Consistent type: empty set (Anvil1 doesn't have Anvil2's specific ENI details)
+      floating_ip_candidate      = null      # Consistent type: null for string
     },
-    {
+    { # Anvil2
       type                       = "ha_node2"
       id                         = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].id : null
       arn                        = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].arn : null
-      primary_private_ip         = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].private_ip : null
-      all_private_ips_set        = length(aws_network_interface.anvil2_ha_ni) > 0 ? aws_network_interface.anvil2_ha_ni[0].private_ips : toset([])
-      first_secondary_private_ip = local.anvil2_ha_ni_secondary_ip
+      private_ip                 = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].private_ip : null # Common key
       public_ip                  = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].public_ip : null
       key_name                   = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].key_name : null
       iam_profile                = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].iam_instance_profile : null
+      all_private_ips_on_eni_set = length(aws_network_interface.anvil2_ha_ni) > 0 ? aws_network_interface.anvil2_ha_ni[0].private_ips : toset([]) # Actual value or empty set
+      floating_ip_candidate      = local.anvil2_ha_ni_secondary_ip # String or null
     }
-  ] : [])
+  ] : []) # Empty list if no anvils are created
 }
 
 output "dsx_instances" {
