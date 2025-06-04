@@ -413,7 +413,7 @@ resource "aws_ebs_volume" "dsx_data_vols" {
 resource "aws_volume_attachment" "dsx_data_vols_attach" {
   count = var.dsx_count * var.dsx_ebs_count # Using new var.dsx_ebs_count
 
-  device_name = "/dev/xvd${local.device_letters[count.index % var.dsx_ebs_count]}" # Using new var.dsx_ebs_count
+  device_name = "/dev/sd${local.device_letters[count.index % var.dsx_ebs_count]}" # Using new var.dsx_ebs_count
   volume_id   = aws_ebs_volume.dsx_data_vols[count.index].id
   instance_id = aws_instance.dsx[floor(count.index / var.dsx_ebs_count)].id          # Using new var.dsx_ebs_count
 }

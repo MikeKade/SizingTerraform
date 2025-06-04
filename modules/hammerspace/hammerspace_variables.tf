@@ -146,6 +146,10 @@ variable "dsx_ebs_count" { # This was previously dsx_data_volumes_per_instance
     condition     = var.dsx_ebs_count >= 0
     error_message = "The number of data EBS volumes per DSX instance must be non-negative."
   }
+  validation {
+    condition	  = var.dsx_count == 0 || var.dsx_ebs_count >= 1
+    error_message = "If DSX Count is greater than 0, the DSX EBS Count must be at least 1"
+  }
 }
 
 variable "dsx_add_vols" {

@@ -124,6 +124,5 @@ module "hammerspace" {
   dsx_ebs_type		       = var.hammerspace_dsx_ebs_type
   dsx_ebs_iops		       = var.hammerspace_dsx_ebs_iops
   dsx_ebs_throughput	       = var.hammerspace_dsx_ebs_throughput
-  dsx_add_vols                 = var.hammerspace_dsx_add_vols
   cluster_ip                   = var.hammerspace_cluster_ip
 }

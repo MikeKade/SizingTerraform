@@ -82,7 +82,7 @@ locals {
                                    ) : ""
 
   dsx_user_data_template_vars_base = {
-    password_auth_pwd_suffix = local.effective_anvil_id_for_dsx_password != null ? ", password: \"${local.effective_anvil_id_for_dsx_password}\"" : ""
+    password_auth_pwd_suffix = local.effective_anvil_id_for_dsx_password != null ? "\"password\": \"${local.effective_anvil_id_for_dsx_password}\"" : ""
     metadata_ip_for_dsx      = local.effective_anvil_ip_for_dsx_metadata != null ? "\"${local.effective_anvil_ip_for_dsx_metadata}/20\"" : "\"CONFIGURE_ANVIL_IP/20\""
     add_volumes_str          = local.dsx_add_volumes_bool ? "True" : "False"
     admin_config_suffix      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
