@@ -50,9 +50,15 @@ variable "ssh_keys_dir" {
 }
 
 variable "deploy_components" {
-  description = "Components to deploy (clients, storage, etc)"
+  description = "Components to deploy. Valid values in the list are: \"all\", \"clients\", \"storage\", \"hammerspace\"."
   type        = list(string)
   default     = ["all"]
+  validation {
+    condition = alltrue([
+      for c in var.deploy_components : contains(["all", "clients", "storage", "hammerspace"], c)
+    ])
+    error_message = "Each item in deploy_components must be one of: \"all\", \"clients\", \"storage\", or \"hammerspace\"."
+  }
 }
 
 variable "instance_name_prefix" {
@@ -62,7 +68,7 @@ variable "instance_name_prefix" {
 }
 
 # CLIENT-SPECIFIC VARIABLES (WITH clients_ PREFIX)
-# ... (client variables remain unchanged) ...
+
 variable "clients_instance_count" {
   description = "Number of client instances"
   type        = number
@@ -135,9 +141,9 @@ variable "clients_target_user" {
 }
 
 # STORAGE-SPECIFIC VARIABLES (WITH storage_ PREFIX)
-# ... (storage variables remain unchanged) ...
+
 variable "storage_instance_count" {
-  description = "Number of client instances" # Note: description says client, might be storage
+  description = "Number of storage instances" # Corrected description
   type        = number
   default     = 1
 }
@@ -284,31 +290,31 @@ variable "hammerspace_anvil_meta_disk_iops" {
   default     = null
 }
 
-variable "hammerspace_dsx_ebs_size" { # RENAMED from hammerspace_dsx_data_disk_size
+variable "hammerspace_dsx_ebs_size" {
   description = "Size of each EBS Data volume per DSX node in GB"
   type        = number
   default     = 200
 }
 
-variable "hammerspace_dsx_ebs_type" { # ADDED for consistency, if you want to control from root
+variable "hammerspace_dsx_ebs_type" {
   description = "Type of each EBS Data volume for DSX (e.g., gp3, io2)"
   type        = string
-  default     = "gp3" # Or remove default if module default is preferred
+  default     = "gp3"
 }
 
-variable "hammerspace_dsx_ebs_iops" { # ADDED for consistency
+variable "hammerspace_dsx_ebs_iops" {
   description = "IOPS for each EBS Data volume for DSX"
   type        = number
   default     = null
 }
 
-variable "hammerspace_dsx_ebs_throughput" { # ADDED for consistency
+variable "hammerspace_dsx_ebs_throughput" {
   description = "Throughput for each EBS Data volume for DSX (MiB/s)"
   type        = number
   default     = null
 }
 
-variable "hammerspace_dsx_ebs_count" { # RENAMED from hammerspace_dsx_data_volumes_per_instance
+variable "hammerspace_dsx_ebs_count" {
   description = "Number of data EBS volumes to attach to each DSX instance."
   type        = number
   default     = 1

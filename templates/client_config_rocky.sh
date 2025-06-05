@@ -1,13 +1,19 @@
 #!/bin/bash
 
+# Update system and install required packages
+#
+# You can modify this based upon your needs
+
+sudo apt-get -y update
+sudo apt-get install -y pip git bc nfs-common screen net-tools fio
+
+# WARNING!!
+# DO NOT MODIFY ANYTHING BELOW THIS LINE OR INSTANCES MAY NOT START CORRECTLY!
+# ----------------------------------------------------------------------------
+
 TARGET_USER="${TARGET_USER}"
 TARGET_HOME="${TARGET_HOME}"
 SSH_KEYS="${SSH_KEYS}"
-
-# Update system and install required packages
-
-sudo apt-get -y update
-sudo apt-get install -y pip git bc nfs-common screen net-tools
 
 # Build NFS mountpoint
 
