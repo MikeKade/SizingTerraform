@@ -99,6 +99,7 @@ module "hammerspace" {
 
   # Hammerspace-specific variables (passed to the hammerspace module)
   ami                            = var.hammerspace_ami
+  profile_id	      		 = var.hammerspace_profile_id
   iam_admin_group_id             = var.hammerspace_iam_admin_group_id
 
   # iam_user_access is handled by a default in the module's variables.tf,

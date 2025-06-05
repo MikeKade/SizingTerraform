@@ -1,6 +1,6 @@
 # Which components to deploy
 
-deploy_components                        = ["clients", "storage"]
+deploy_components                        = ["hammerspace"]
 
 # Global variables
 
@@ -50,6 +50,9 @@ storage_target_user      		 = "ubuntu"
 hammerspace_ami				 = "ami-02300b13d054bff31"
 hammerspace_cluster_ip           	 = ""
 
+# Comment the following if creating a new Profile ID
+
+hammerspace_profile_id			 = "Hammerspace"
 hammerspace_anvil_count		 	 = 1
 hammerspace_anvil_instance_type  	 = "m5n.8xlarge"
 hammerspace_anvil_meta_disk_size 	 = 1000

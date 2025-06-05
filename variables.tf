@@ -226,6 +226,12 @@ variable "storage_raid_level" {
 
 # Hammerspace-specific variables
 
+variable "hammerspace_profile_id" {
+  description = "The name of an existing IAM Instance Profile to attach to Hammerspace Instances"
+  type	      = string
+  default     = ""
+}
+
 variable "hammerspace_ami" {
   description = "AMI ID for Hammerspace instances"
   type        = string
