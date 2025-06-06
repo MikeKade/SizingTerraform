@@ -34,7 +34,7 @@ variable "tags" {
 }
 
 variable "project_name" {
-  description = "Project name for tagging"
+  description = "Project name for tagging and resource naming"
   type        = string
   default     = ""
   validation {
@@ -61,14 +61,7 @@ variable "deploy_components" {
   }
 }
 
-variable "instance_name_prefix" {
-  description = "Prefix for resource naming"
-  type        = string
-  default     = "aws-sizing"
-}
-
 # CLIENT-SPECIFIC VARIABLES (WITH clients_ PREFIX)
-
 variable "clients_instance_count" {
   description = "Number of client instances"
   type        = number
@@ -141,9 +134,8 @@ variable "clients_target_user" {
 }
 
 # STORAGE-SPECIFIC VARIABLES (WITH storage_ PREFIX)
-
 variable "storage_instance_count" {
-  description = "Number of storage instances" # Corrected description
+  description = "Number of storage instances"
   type        = number
   default     = 1
 }
@@ -225,13 +217,6 @@ variable "storage_raid_level" {
 }
 
 # Hammerspace-specific variables
-
-variable "hammerspace_profile_id" {
-  description = "The name of an existing IAM Instance Profile to attach to Hammerspace Instances"
-  type	      = string
-  default     = ""
-}
-
 variable "hammerspace_ami" {
   description = "AMI ID for Hammerspace instances"
   type        = string
@@ -240,6 +225,12 @@ variable "hammerspace_ami" {
 
 variable "hammerspace_iam_admin_group_id" {
   description = "IAM admin group ID for SSH access (can be existing group name or blank to create new)"
+  type        = string
+  default     = ""
+}
+
+variable "hammerspace_profile_id" {
+  description = "The name of an existing IAM Instance Profile to attach to Hammerspace instances. If left blank, a new one will be created with the necessary policies."
   type        = string
   default     = ""
 }
@@ -336,4 +327,26 @@ variable "hammerspace_cluster_ip" {
   description = "Predefined Cluster IP address for Anvil (optional for new, required for DSX-only to existing)"
   type        = string
   default     = ""
+}
+
+variable "placement_group_name" {
+  description = "Optional: The name of the placement group to create and launch instances into. If left blank, no placement group is used."
+  type        = string
+  default     = ""
+}
+
+variable "placement_group_strategy" {
+  description = "The strategy to use for the placement group: cluster, spread, or partition."
+  type        = string
+  default     = "cluster"
+  validation {
+    condition     = contains(["cluster", "spread", "partition"], var.placement_group_strategy)
+    error_message = "Allowed values for placement_group_strategy are: cluster, spread, or partition."
+  }
+}
+
+variable "create_placement_group" {
+  description = "If true, Terraform will create the placement group if placement_group_name is set. If false, it will assume the placement group already exists."
+  type        = bool
+  default     = true
 }

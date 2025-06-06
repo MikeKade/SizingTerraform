@@ -28,9 +28,3 @@ output "hammerspace_mgmt_url" {
   description = "Hammerspace Mgmt URL"
   value       = module.hammerspace[*].management_url
 }
-
-output "hammerspace_dsx_node1_rendered_userdata" {
-  description = "Rendered UserData for the first DSX node in the Hammerspace module."
-  value       = local.deploy_hammerspace ? module.hammerspace[0].dsx_node1_userdata_rendered : null
-  sensitive   = true
-}

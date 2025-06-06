@@ -15,9 +15,7 @@ locals {
   # --- Mappings & Derived Values ---
   anvil_instance_type_actual = var.anvil_type
   dsx_instance_type_actual   = var.dsx_type
-  current_region_ami         = var.ami # Using the direct var.ami as per previous correction
-
-  # Common tags to be applied to all resources
+  
   common_tags = merge(var.tags, {
     Project = var.project_name
   })
@@ -82,7 +80,7 @@ locals {
                                    ) : ""
 
   dsx_user_data_template_vars_base = {
-    password_auth_pwd_suffix = local.effective_anvil_id_for_dsx_password != null ? "\"password\": \"${local.effective_anvil_id_for_dsx_password}\"" : ""
+    password_auth_pwd_suffix = local.effective_anvil_id_for_dsx_password != null ? ", password: \"${local.effective_anvil_id_for_dsx_password}\"" : ""
     metadata_ip_for_dsx      = local.effective_anvil_ip_for_dsx_metadata != null ? "\"${local.effective_anvil_ip_for_dsx_metadata}/20\"" : "\"CONFIGURE_ANVIL_IP/20\""
     add_volumes_str          = local.dsx_add_volumes_bool ? "True" : "False"
     admin_config_suffix      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
@@ -100,7 +98,6 @@ locals {
     volume_size = 200
   }
 
-  # ADDED device_letters local
   device_letters = [
     "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
     "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"

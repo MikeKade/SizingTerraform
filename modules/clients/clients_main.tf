@@ -1,9 +1,4 @@
 # clients_main.tf
-#
-# Main terraform module to deploy clients for AWS Sizing for AI Model
-# creation
-
-# Gather SSH public keys from directory and render user data if provided
 
 locals {
   device_letters = [
@@ -25,7 +20,7 @@ locals {
     TARGET_HOME = "/home/${var.target_user}"
   }) : null
 
-  resource_prefix = "${var.name_prefix}-client"
+  resource_prefix = "${var.project_name}-client" # CHANGED: Uses project_name
 }
 
 # Security group for client instances
@@ -62,6 +57,7 @@ resource "aws_instance" "this" {
   subnet_id     = var.subnet_id
   key_name      = var.key_name
   user_data     = local.processed_user_data
+  placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
 
   vpc_security_group_ids = [aws_security_group.client.id]
 

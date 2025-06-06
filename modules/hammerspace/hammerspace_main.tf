@@ -74,77 +74,70 @@ resource "aws_security_group" "anvil_data_sg" {
   tags        = local.common_tags
 
   ingress {
-    protocol = "icmp"
-    from_port = -1
-    to_port = -1
+    protocol    = "icmp"
+    from_port   = -1
+    to_port     = -1
     cidr_blocks = [var.sec_ip_cidr]
   }
-
+  # Anvil TCP Ports
   dynamic "ingress" {
     for_each = [22, 80, 111, 161, 443, 662, 2049, 2224, 4379, 7789, 8443, 9093, 9097, 9298, 9399, 20048, 20491, 20492, 21064, 50000, 51000, 53030]
     content {
-      protocol = "tcp"
-      from_port = ingress.value
-      to_port = ingress.value
+      protocol    = "tcp"
+      from_port   = ingress.value
+      to_port     = ingress.value
       cidr_blocks = [var.sec_ip_cidr]
     }
   }
-
   ingress {
-    from_port = 4505
-    to_port = 4506
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 4505
+    to_port     = 4506
     cidr_blocks = [var.sec_ip_cidr]
   }
-
   ingress {
-    from_port = 7789
-    to_port = 7790
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 7789
+    to_port     = 7790
     cidr_blocks = [var.sec_ip_cidr]
   }
-
   ingress {
-    from_port = 9093
-    to_port = 9094
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 9093
+    to_port     = 9094
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 9298
-    to_port = 9299
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 9298
+    to_port     = 9299
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 41001
-    to_port = 41256
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 41001
+    to_port     = 41256
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 52000
-    to_port = 52008
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 52000
+    to_port     = 52008
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 53000
-    to_port = 53008
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 53000
+    to_port     = 53008
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
+  # Anvil UDP Ports
   dynamic "ingress" {
     for_each = [111, 123, 161, 662, 4379, 5405, 20048]
     content {
-      protocol = "udp"
-      from_port = ingress.value
-      to_port = ingress.value
+      protocol    = "udp"
+      from_port   = ingress.value
+      to_port     = ingress.value
       cidr_blocks = [var.sec_ip_cidr]
     }
   }
@@ -158,77 +151,70 @@ resource "aws_security_group" "dsx_sg" {
   tags        = local.common_tags
 
   ingress {
-    protocol = "icmp"
-    from_port = -1
-    to_port = -1
+    protocol    = "icmp"
+    from_port   = -1
+    to_port     = -1
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
+  # DSX TCP Ports
   dynamic "ingress" {
     for_each = [22, 111, 139, 161, 445, 662, 2049, 3049, 4379, 9093, 9292, 20048, 20491, 20492, 30048, 30049, 50000, 51000, 53030]
     content {
-      protocol = "tcp"
-      from_port = ingress.value
-      to_port = ingress.value
+      protocol    = "tcp"
+      from_port   = ingress.value
+      to_port     = ingress.value
       cidr_blocks = [var.sec_ip_cidr]
     }
   }
-  
   ingress {
-    from_port = 4505
-    to_port = 4506
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 4505
+    to_port     = 4506
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 9000
-    to_port = 9009
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 9000
+    to_port     = 9009
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 9095
-    to_port = 9096
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 9095
+    to_port     = 9096
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 9098
-    to_port = 9099
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 9098
+    to_port     = 9099
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 41001
-    to_port = 41256
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 41001
+    to_port     = 41256
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 52000
-    to_port = 52008
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 52000
+    to_port     = 52008
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
   ingress {
-    from_port = 53000
-    to_port = 53008
-    protocol = "tcp"
+    protocol    = "tcp"
+    from_port   = 53000
+    to_port     = 53008
     cidr_blocks = [var.sec_ip_cidr]
   }
-  
+  # DSX UDP Ports
   dynamic "ingress" {
     for_each = [111, 161, 662, 20048, 30048, 30049]
     content {
-      protocol = "udp"
-      from_port = ingress.value
-      to_port = ingress.value
+      protocol    = "udp"
+      from_port   = ingress.value
+      to_port     = ingress.value
       cidr_blocks = [var.sec_ip_cidr]
     }
   }
@@ -250,6 +236,7 @@ resource "aws_instance" "anvil" {
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = local.anvil_sa_user_data_b64
+  placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil_sa_ni[0].id
@@ -293,6 +280,7 @@ resource "aws_instance" "anvil1" {
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = local.anvil1_ha_user_data_b64
+  placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil1_ha_ni[0].id
@@ -336,6 +324,7 @@ resource "aws_instance" "anvil2" {
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = local.anvil2_ha_user_data_b64
+  placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil2_ha_ni[0].id
@@ -379,6 +368,7 @@ resource "aws_instance" "dsx" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
+  placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   user_data_base64 = base64encode(templatefile("${path.module}/templates/dsx.tftpl", merge(
     local.dsx_user_data_template_vars_base,
     { dsx_node_index_param = count.index + 1 }
@@ -396,24 +386,24 @@ resource "aws_instance" "dsx" {
 }
 
 resource "aws_ebs_volume" "dsx_data_vols" {
-  count = var.dsx_count * var.dsx_ebs_count # Using new var.dsx_ebs_count
+  count = var.dsx_count * var.dsx_ebs_count
 
   availability_zone = var.availability_zone
-  size              = var.dsx_ebs_size                 # Using new var.dsx_ebs_size
-  type              = var.dsx_ebs_type                 # Using new var.dsx_ebs_type
-  iops              = contains(["io1", "io2", "gp3"], var.dsx_ebs_type) ? var.dsx_ebs_iops : null # Using new var.dsx_ebs_type and var.dsx_ebs_iops
-  throughput        = var.dsx_ebs_type == "gp3" ? var.dsx_ebs_throughput : null                  # Using new var.dsx_ebs_type and var.dsx_ebs_throughput
+  size              = var.dsx_ebs_size
+  type              = var.dsx_ebs_type
+  iops              = contains(["io1", "io2", "gp3"], var.dsx_ebs_type) ? var.dsx_ebs_iops : null
+  throughput        = var.dsx_ebs_type == "gp3" ? var.dsx_ebs_throughput : null
   tags = merge(local.common_tags, {
-    Name             = "${var.project_name}-DSX${floor(count.index / var.dsx_ebs_count) + 1}-DataVol${(count.index % var.dsx_ebs_count) + 1}" # Using new var.dsx_ebs_count
-    DSXInstanceIndex = floor(count.index / var.dsx_ebs_count) # Using new var.dsx_ebs_count
-    VolumeIndex      = count.index % var.dsx_ebs_count        # Using new var.dsx_ebs_count
+    Name             = "${var.project_name}-DSX${floor(count.index / var.dsx_ebs_count) + 1}-DataVol${(count.index % var.dsx_ebs_count) + 1}"
+    DSXInstanceIndex = floor(count.index / var.dsx_ebs_count)
+    VolumeIndex      = count.index % var.dsx_ebs_count
   })
 }
 
 resource "aws_volume_attachment" "dsx_data_vols_attach" {
-  count = var.dsx_count * var.dsx_ebs_count # Using new var.dsx_ebs_count
+  count = var.dsx_count * var.dsx_ebs_count
 
-  device_name = "/dev/sd${local.device_letters[count.index % var.dsx_ebs_count]}" # Using new var.dsx_ebs_count
+  device_name = "/dev/xvd${local.device_letters[count.index % var.dsx_ebs_count]}"
   volume_id   = aws_ebs_volume.dsx_data_vols[count.index].id
-  instance_id = aws_instance.dsx[floor(count.index / var.dsx_ebs_count)].id          # Using new var.dsx_ebs_count
+  instance_id = aws_instance.dsx[floor(count.index / var.dsx_ebs_count)].id
 }

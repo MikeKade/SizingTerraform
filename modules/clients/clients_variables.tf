@@ -1,10 +1,3 @@
-# Prefixless variables for internal module use
-
-variable "name_prefix" {
-  description = "Prefix for resource names"
-  type        = string
-}
-
 # Client-specific variables
 
 variable "instance_count" {
@@ -102,7 +95,7 @@ variable "tags" {
 }
 
 variable "project_name" {
-  description = "Project name for tagging"
+  description = "Project name for tagging and resource naming"
   type        = string
 }
 
@@ -110,3 +103,10 @@ variable "ssh_keys_dir" {
   description = "Directory containing SSH public keys"
   type        = string
 }
+
+variable "placement_group_name" {
+  description = "Optional: The name of the placement group for the instances."
+  type        = string
+  default     = ""
+}
+

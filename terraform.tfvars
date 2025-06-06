@@ -2,6 +2,16 @@
 
 deploy_components                        = ["hammerspace"]
 
+# Placement Group
+#
+# Leave the name blank if you don't want your resources in a placement group
+# Use a name along with create_placement_group = false if you already have a group
+# Use a name along with create_placement_group = true if you want to create a new group
+
+create_placement_group			 = false
+placement_group_name			 = "Kade-Group"
+placement_group_strategy		 = "cluster"
+
 # Global variables
 
 project_name				 = "AWSSizing"

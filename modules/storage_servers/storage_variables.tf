@@ -1,8 +1,9 @@
 # Prefixless variables for internal module use
 
-variable "name_prefix" {
-  description = "Prefix for resource names"
+variable "placement_group_name" {
+  description = "Optional: The name of the placement group for the instances."
   type        = string
+  default     = ""
 }
 
 # Storage-specific variables

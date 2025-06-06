@@ -27,7 +27,7 @@ locals {
     RAID_LEVEL = var.raid_level
   }) : null
 
-  resource_prefix = "${var.name_prefix}-storage"
+  resource_prefix = "${var.project_name}-storage"
 }
 
 # Security group for storage instances
@@ -61,6 +61,7 @@ resource "aws_security_group" "storage" {
 
 resource "aws_instance" "this" {
   count         = var.instance_count
+  placement_group = var.placement_group_name != "" ? var.placement_group_name : null
   ami           = var.ami
   instance_type = var.instance_type
   subnet_id     = var.subnet_id

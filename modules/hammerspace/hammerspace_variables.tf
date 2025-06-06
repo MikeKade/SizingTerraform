@@ -31,14 +31,8 @@ variable "tags" {
 }
 
 variable "project_name" {
-  description = "Name of the project, used in resource naming and tagging."
+  description = "Project name for tagging and resource naming."
   type        = string
-}
-
-variable "name_prefix" {
-  description = "Prefix for instance names and other named resources."
-  type        = string
-  default     = "hs"
 }
 
 variable "ami" {
@@ -114,31 +108,31 @@ variable "anvil_meta_disk_throughput" {
   default     = null
 }
 
-variable "dsx_ebs_size" { # RENAMED from dsx_data_disk_size
+variable "dsx_ebs_size" {
   description = "Size of each EBS Data volume per DSX instance in GB."
   type        = number
   default     = 200
 }
 
-variable "dsx_ebs_type" { # RENAMED from dsx_data_disk_type
+variable "dsx_ebs_type" {
   description = "Type of each EBS Data volume for DSX (e.g., 'gp2', 'gp3', 'io1', 'io2')."
   type        = string
   default     = "gp3"
 }
 
-variable "dsx_ebs_iops" { # RENAMED from dsx_data_disk_iops
+variable "dsx_ebs_iops" {
   description = "IOPS for each EBS Data volume for DSX (required for io1/io2, optional for gp3)."
   type        = number
   default     = null
 }
 
-variable "dsx_ebs_throughput" { # RENAMED from dsx_data_disk_throughput
+variable "dsx_ebs_throughput" {
   description = "Throughput in MiB/s for each EBS Data volume for DSX (relevant for gp3)."
   type        = number
   default     = null
 }
 
-variable "dsx_ebs_count" { # This was previously dsx_data_volumes_per_instance
+variable "dsx_ebs_count" {
   description = "Number of data EBS volumes to attach to each DSX instance."
   type        = number
   default     = 1
@@ -147,8 +141,8 @@ variable "dsx_ebs_count" { # This was previously dsx_data_volumes_per_instance
     error_message = "The number of data EBS volumes per DSX instance must be non-negative."
   }
   validation {
-    condition	  = var.dsx_count == 0 || var.dsx_ebs_count >= 1
-    error_message = "If DSX Count is greater than 0, the DSX EBS Count must be at least 1"
+    condition     = var.dsx_count == 0 || var.dsx_ebs_count >= 1
+    error_message = "If dsx_count is greater than 0, dsx_ebs_count must be at least 1."
   }
 }
 
@@ -176,6 +170,12 @@ variable "sec_ip_cidr" {
     condition     = can(regex("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/(?:3[0-2]|[12]?[0-9]?)$", var.sec_ip_cidr))
     error_message = "Security IP CIDR must be a valid CIDR block."
   }
+}
+
+variable "placement_group_name" {
+  description = "Optional: The name of the placement group for the instances."
+  type        = string
+  default     = ""
 }
 
 data "aws_caller_identity" "current" {}
