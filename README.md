@@ -28,10 +28,10 @@ These variables apply to the overall deployment:
 * `availability_zone`: AWS availability zone for resource placement (Default: "us-west-2b").
 * `vpc_id`: (Required) VPC ID for all resources.
 * `subnet_id`: (Required) Subnet ID for resources.
-* `key_name`: (Required) SSH key pair name for instance access.
+* `key_name`: (Required) SSH key pair name for instance access. This key is still required by AWS for the instance launch, even if not used for login.
 * `tags`: Common tags to apply to all resources (Default: `{}`).
 * `project_name`: (Required) Project name used for tagging and resource naming.
-* `ssh_keys_dir`: Directory containing SSH public keys for UserData scripts (Default: "./ssh_keys").
+* `ssh_keys_dir`: A local directory where you can place multiple public SSH key files (e.g., `user1.pub`, `user2.pub`). The startup script will automatically add these keys to the `authorized_keys` file on all servers. This allows users to `ssh` into the instances with their own personal private keys instead of sharing the single EC2 `.pem` file. (Default: `"./ssh_keys"`).
 * `deploy_components`: List of components to deploy (e.g., `["clients", "storage", "hammerspace"]` or `["all"]`) (Default: `["all"]`).
 * `placement_group_name`: (Optional) The name of the placement group to create and launch instances into. If left blank, no placement group is used.
 * `placement_group_strategy`: The strategy for the placement group: `cluster`, `spread`, or `partition` (Default: `cluster`).
