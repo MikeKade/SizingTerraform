@@ -323,12 +323,6 @@ variable "hammerspace_dsx_add_vols" {
   default     = true
 }
 
-variable "hammerspace_cluster_ip" {
-  description = "Predefined Cluster IP address for Anvil (optional for new, required for DSX-only to existing)"
-  type        = string
-  default     = ""
-}
-
 variable "placement_group_name" {
   description = "Optional: The name of the placement group to create and launch instances into. If left blank, no placement group is used."
   type        = string
@@ -343,10 +337,4 @@ variable "placement_group_strategy" {
     condition     = contains(["cluster", "spread", "partition"], var.placement_group_strategy)
     error_message = "Allowed values for placement_group_strategy are: cluster, spread, or partition."
   }
-}
-
-variable "create_placement_group" {
-  description = "If true, Terraform will create the placement group if placement_group_name is set. If false, it will assume the placement group already exists."
-  type        = bool
-  default     = true
 }

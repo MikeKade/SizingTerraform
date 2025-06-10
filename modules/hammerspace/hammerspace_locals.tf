@@ -5,12 +5,11 @@ locals {
   create_ha_anvils         = var.anvil_count >= 2
 
   # --- General Conditions ---
-  provides_key_name        = var.key_name != null && var.key_name != ""
-  enable_iam_admin_group   = var.iam_user_access == "Enable"
-  create_iam_admin_group   = local.enable_iam_admin_group && var.iam_admin_group_id == ""
-  create_profile           = var.profile_id == ""
-  provides_cluster_ip      = var.cluster_ip != ""
-  dsx_add_volumes_bool     = local.should_create_any_anvils && var.dsx_add_vols
+  provides_key_name      = var.key_name != null && var.key_name != ""
+  enable_iam_admin_group = var.iam_user_access == "Enable"
+  create_iam_admin_group = local.enable_iam_admin_group && var.iam_admin_group_id == ""
+  create_profile         = var.profile_id == ""
+  dsx_add_volumes_bool   = local.should_create_any_anvils && var.dsx_add_vols
 
   # --- Mappings & Derived Values ---
   anvil_instance_type_actual = var.anvil_type
@@ -27,20 +26,20 @@ locals {
 
   # --- UserData Configuration ---
   anvil_sa_userdata_rendered = local.create_standalone_anvil ? templatefile("${path.module}/templates/anvil_sa.tftpl", {
-    stack_name_param   = var.project_name,
+    project_name   = var.project_name,
     admin_config_param = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
   }) : null
 
   anvil1_ha_userdata_rendered = local.create_ha_anvils ? templatefile("${path.module}/templates/anvil1_ha.tftpl", {
-    stack_name_param        = var.project_name,
+    project_name        = var.project_name,
     admin_config_param      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: \"${local.effective_iam_admin_group_name}\"" : "",
-    cluster_ip_config_param = local.provides_cluster_ip ? ", cluster_ips: [\"${var.cluster_ip}\"]" : ""
+    cluster_ip_config_param = local.create_ha_anvils && local.anvil2_ha_ni_secondary_ip != null ? ", cluster_ips: [\"${local.anvil2_ha_ni_secondary_ip}\"]" : ""
   }) : null
 
   anvil2_ha_userdata_rendered = local.create_ha_anvils ? templatefile("${path.module}/templates/anvil2_ha.tftpl", {
-    stack_name_param        = var.project_name,
+    project_name        = var.project_name,
     admin_config_param      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: \"${local.effective_iam_admin_group_name}\"" : "",
-    cluster_ip_config_param = local.provides_cluster_ip ? ", cluster_ips: [\"${var.cluster_ip}\"]" : ""
+    cluster_ip_config_param = local.create_ha_anvils && local.anvil2_ha_ni_secondary_ip != null ? ", cluster_ips: [\"${local.anvil2_ha_ni_secondary_ip}\"]" : ""
   }) : null
 
   anvil_sa_user_data_b64  = local.anvil_sa_userdata_rendered != null ? base64encode(local.anvil_sa_userdata_rendered) : ""
@@ -57,14 +56,12 @@ locals {
   )
 
   management_ip_for_url = coalesce(
-    var.cluster_ip != "" ? var.cluster_ip : null,
     local.anvil2_ha_ni_secondary_ip,
     local.create_standalone_anvil && length(aws_instance.anvil) > 0 ? aws_instance.anvil[0].private_ip : null,
-    "N/A - Configure ClusterIP or check Anvil instance details."
+    "N/A - Anvil instance details not available."
   )
 
   effective_anvil_ip_for_dsx_metadata = coalesce(
-    var.cluster_ip != "" ? var.cluster_ip : null,
     local.anvil2_ha_ni_secondary_ip,
     local.create_standalone_anvil && length(aws_instance.anvil) > 0 ? aws_instance.anvil[0].private_ip : null
   )
@@ -75,9 +72,9 @@ locals {
   )
 
   dsx_anvils_nodes_config_string = local.should_create_any_anvils ? (
-                                     local.create_ha_anvils ? "'1': {hostname: \"${var.project_name}Anvil1\", features: [metadata]}, '2': {hostname: \"${var.project_name}Anvil2\", features: [metadata]}" :
-                                     (local.create_standalone_anvil ? "'1': {hostname: \"${var.project_name}Anvil\", features: [metadata]}" : "")
-                                   ) : ""
+                                    local.create_ha_anvils ? "'1': {hostname: \"${var.project_name}Anvil1\", features: [metadata]}, '2': {hostname: \"${var.project_name}Anvil2\", features: [metadata]}" :
+                                    (local.create_standalone_anvil ? "'1': {hostname: \"${var.project_name}Anvil\", features: [metadata]}" : "")
+                                  ) : ""
 
   dsx_user_data_template_vars_base = {
     password_auth_pwd_suffix = local.effective_anvil_id_for_dsx_password != null ? ", password: \"${local.effective_anvil_id_for_dsx_password}\"" : ""
@@ -85,7 +82,7 @@ locals {
     add_volumes_str          = local.dsx_add_volumes_bool ? "True" : "False"
     admin_config_suffix      = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? ", aws: {iam_admin_group: \"${local.effective_iam_admin_group_name}\"}" : ""
     anvils_config_for_dsx    = local.dsx_anvils_nodes_config_string
-    stack_name_param         = var.project_name
+    project_name             = var.project_name
   }
 
   dsx_node1_userdata_rendered = var.dsx_count > 0 ? templatefile("${path.module}/templates/dsx.tftpl", merge(

@@ -22,7 +22,7 @@ resource "aws_iam_role_policy" "ssh_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Sid    = "1", Effect = "Allow", Action = ["iam:ListSSHPublicKeys", "iam:GetSSHPublicKey", "iam:GetGroup"],
+      Sid      = "1", Effect = "Allow", Action = ["iam:ListSSHPublicKeys", "iam:GetSSHPublicKey", "iam:GetGroup"],
       Resource = compact(["arn:${data.aws_partition.current.partition}:iam::*:user/*", local.effective_iam_admin_group_arn])
     }]
   })
@@ -249,13 +249,13 @@ resource "aws_instance" "anvil" {
   depends_on = [aws_iam_instance_profile.profile]
 }
 resource "aws_ebs_volume" "anvil_meta_vol" {
-  count             = local.create_standalone_anvil ? 1 : 0
-  availability_zone = var.availability_zone
-  size              = var.anvil_meta_disk_size
-  type              = var.anvil_meta_disk_type
-  iops              = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
-  throughput        = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
-  tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil-MetaVol" })
+  count               = local.create_standalone_anvil ? 1 : 0
+  availability_zone   = var.availability_zone
+  size                = var.anvil_meta_disk_size
+  type                = var.anvil_meta_disk_type
+  iops                = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
+  throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
+  tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil-MetaVol" })
 }
 resource "aws_volume_attachment" "anvil_meta_vol_attach" {
   count       = local.create_standalone_anvil ? 1 : 0
@@ -293,13 +293,13 @@ resource "aws_instance" "anvil1" {
   depends_on = [aws_iam_instance_profile.profile]
 }
 resource "aws_ebs_volume" "anvil1_meta_vol" {
-  count             = local.create_ha_anvils ? 1 : 0
-  availability_zone = var.availability_zone
-  size              = var.anvil_meta_disk_size
-  type              = var.anvil_meta_disk_type
-  iops              = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
-  throughput        = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
-  tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil1-MetaVol" })
+  count               = local.create_ha_anvils ? 1 : 0
+  availability_zone   = var.availability_zone
+  size                = var.anvil_meta_disk_size
+  type                = var.anvil_meta_disk_type
+  iops                = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
+  throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
+  tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil1-MetaVol" })
 }
 resource "aws_volume_attachment" "anvil1_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
@@ -312,7 +312,7 @@ resource "aws_network_interface" "anvil2_ha_ni" {
   count             = local.create_ha_anvils ? 1 : 0
   subnet_id         = var.subnet_id
   security_groups   = local.should_create_any_anvils ? [aws_security_group.anvil_data_sg[0].id] : []
-  private_ips_count = local.provides_cluster_ip ? 1 : 2
+  private_ips_count = 2
   tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-NI" })
   depends_on        = [aws_security_group.anvil_data_sg]
 }
@@ -337,13 +337,13 @@ resource "aws_instance" "anvil2" {
   depends_on = [aws_instance.anvil1, aws_iam_instance_profile.profile]
 }
 resource "aws_ebs_volume" "anvil2_meta_vol" {
-  count             = local.create_ha_anvils ? 1 : 0
-  availability_zone = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].availability_zone : var.availability_zone
-  size              = var.anvil_meta_disk_size
-  type              = var.anvil_meta_disk_type
-  iops              = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
-  throughput        = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
-  tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-MetaVol" })
+  count               = local.create_ha_anvils ? 1 : 0
+  availability_zone   = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].availability_zone : var.availability_zone
+  size                = var.anvil_meta_disk_size
+  type                = var.anvil_meta_disk_type
+  iops                = contains(["io1", "io2", "gp3"], var.anvil_meta_disk_type) ? var.anvil_meta_disk_iops : null
+  throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
+  tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-MetaVol" })
 }
 resource "aws_volume_attachment" "anvil2_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
@@ -354,12 +354,12 @@ resource "aws_volume_attachment" "anvil2_meta_vol_attach" {
 
 # --- DSX Data Services Node Resources ---
 resource "aws_network_interface" "dsx_ni" {
-  count             = var.dsx_count
-  subnet_id         = var.subnet_id
-  security_groups   = var.dsx_count > 0 ? [aws_security_group.dsx_sg[0].id] : []
-  source_dest_check = false
-  tags              = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}-NI" })
-  depends_on        = [aws_security_group.dsx_sg]
+  count               = var.dsx_count
+  subnet_id           = var.subnet_id
+  security_groups     = var.dsx_count > 0 ? [aws_security_group.dsx_sg[0].id] : []
+  source_dest_check   = false
+  tags                = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}-NI" })
+  depends_on          = [aws_security_group.dsx_sg]
 }
 resource "aws_instance" "dsx" {
   count                  = var.dsx_count

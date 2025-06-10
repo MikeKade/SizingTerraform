@@ -152,16 +152,6 @@ variable "dsx_add_vols" {
   default     = true
 }
 
-variable "cluster_ip" {
-  description = "Anvil Cluster IP (optional for new clusters; required if anvil_count = 0 and DSX nodes are added to existing external Anvil)."
-  type        = string
-  default     = ""
-  validation {
-    condition     = var.cluster_ip == "" || can(regex("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.cluster_ip))
-    error_message = "Cluster IP must be a valid IP address or empty."
-  }
-}
-
 variable "sec_ip_cidr" {
   description = "Permitted IP/CIDR for Security Group Ingress. Use '0.0.0.0/0' for open access (not recommended for production)."
   type        = string

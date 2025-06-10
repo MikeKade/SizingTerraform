@@ -105,7 +105,7 @@ output "anvil_ha_node2_userdata_rendered" {
   sensitive   = true
 }
 
-output "dsx_node1_userdata_rendered" {
+output "dsx_userdata_rendered" {
   description = "Rendered UserData for the first DSX node (if any DSX nodes are created)."
   value       = local.dsx_node1_userdata_rendered
   sensitive   = true
