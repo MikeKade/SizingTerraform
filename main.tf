@@ -2,12 +2,18 @@
 
 provider "aws" {
   region = var.region
+
+  # Uncomment the next line and fill in your profile name. This is used to lookup
+  # your credentials in $HOME/.aws/credentials
+  #
+  # If you choose to use environment variables instead, please leave this commented out
+  profile = "kade"
 }
 
 # Conditionally create the placement group if a name is provided
 
 resource "aws_placement_group" "this" {
-  count = var.placement_group_name != "" && var.create_placement_group ? 1: 0
+  count = var.placement_group_name != "" ? 1 : 0
 
   name     = var.placement_group_name
   strategy = var.placement_group_strategy
@@ -29,14 +35,14 @@ module "clients" {
   source = "./modules/clients"
 
   # Global variables
-  region              = var.region
-  availability_zone = var.availability_zone
-  vpc_id              = var.vpc_id
-  subnet_id           = var.subnet_id
-  key_name            = var.key_name
-  tags                = var.tags
-  project_name        = var.project_name
-  ssh_keys_dir        = var.ssh_keys_dir
+  region               = var.region
+  availability_zone    = var.availability_zone
+  vpc_id               = var.vpc_id
+  subnet_id            = var.subnet_id
+  key_name             = var.key_name
+  tags                 = var.tags
+  project_name         = var.project_name
+  ssh_keys_dir         = var.ssh_keys_dir
   placement_group_name = var.placement_group_name
 
   # Client-specific variables
@@ -61,14 +67,14 @@ module "storage_servers" {
   source = "./modules/storage_servers"
 
   # Global variables
-  region              = var.region
-  availability_zone = var.availability_zone
-  vpc_id              = var.vpc_id
-  subnet_id           = var.subnet_id
-  key_name            = var.key_name
-  tags                = var.tags
-  project_name        = var.project_name
-  ssh_keys_dir        = var.ssh_keys_dir
+  region               = var.region
+  availability_zone    = var.availability_zone
+  vpc_id               = var.vpc_id
+  subnet_id            = var.subnet_id
+  key_name             = var.key_name
+  tags                 = var.tags
+  project_name         = var.project_name
+  ssh_keys_dir         = var.ssh_keys_dir
   placement_group_name = var.placement_group_name
 
   # Storage-specific variables
@@ -94,13 +100,13 @@ module "hammerspace" {
   source = "./modules/hammerspace"
 
   # Global variables
-  region              = var.region
-  availability_zone = var.availability_zone
-  vpc_id              = var.vpc_id
-  subnet_id           = var.subnet_id
-  key_name            = var.key_name
-  tags                = var.tags
-  project_name        = var.project_name
+  region               = var.region
+  availability_zone    = var.availability_zone
+  vpc_id               = var.vpc_id
+  subnet_id            = var.subnet_id
+  key_name             = var.key_name
+  tags                 = var.tags
+  project_name         = var.project_name
   placement_group_name = var.placement_group_name
 
   # Hammerspace-specific variables
@@ -121,5 +127,4 @@ module "hammerspace" {
   dsx_ebs_throughput           = var.hammerspace_dsx_ebs_throughput
   dsx_ebs_count                = var.hammerspace_dsx_ebs_count
   dsx_add_vols                 = var.hammerspace_dsx_add_vols
-  cluster_ip                   = var.hammerspace_cluster_ip
 }
