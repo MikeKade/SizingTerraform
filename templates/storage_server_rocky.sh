@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# Update and install required packages
+# Update and install required packages for Rocky Linux
 #
 # You can modify this based upon your needs
 
-sudo apt update
-sudo apt install -y net-tools nfs-common nfs-kernel-server sysstat mdadm
+# Enable the EPEL repository to ensure all packages are available
+sudo dnf -y install epel-release
+
+# Update all packages
+sudo dnf -y upgrade
+
+# Install required packages
+sudo dnf install -y net-tools nfs-utils sysstat mdadm
 
 # WARNING!!
 # DO NOT MODIFY ANYTHING BELOW THIS LINE OR INSTANCES MAY NOT START CORRECTLY!
@@ -56,7 +62,7 @@ done
 get_physical_device() {
     local mount_point="$${1}"
     local device=$(findmnt -n -o SOURCE --target "$${mount_point}")
-    
+
     # Handle LVM and partition cases
     if [[ "$${device}" =~ ^/dev/mapper/ ]]; then
         # LVM device - get underlying physical volume
@@ -65,7 +71,7 @@ get_physical_device() {
         # NVMe partition - get the whole device
         device=$${device%p[0-9]*}
     fi
-    
+
     echo "$${device}"
 }
 
@@ -140,26 +146,18 @@ sudo chmod 777 /hsvol1
 
 echo "/hsvol1 *(rw,sync,no_root_squash,no_subtree_check)" | sudo tee -a /etc/exports
 
-# Optimize NFS config
+# Increase NFS threads for Rocky Linux by editing /etc/sysconfig/nfs
+# (This replaces the /etc/default/nfs-kernel-server and /etc/nfs.conf.d method from Ubuntu)
+echo 'RPCNFSDCOUNT=128' | sudo tee /etc/sysconfig/nfs
 
-sudo tee /etc/nfs.conf.d/local.conf > /dev/null <<'EOF'
-[nfsd]
-threads = 128
+# Configure firewall for NFS (Critical for RHEL-based systems)
+sudo firewall-cmd --permanent --add-service="nfs"
+sudo firewall-cmd --permanent --add-service="rpc-bind"
+sudo firewall-cmd --permanent --add-service="mountd"
+sudo firewall-cmd --reload
 
-[mountd]
-manage-gids = 1
-EOF
-
-# Increase NFS threads
-
-sudo tee /etc/default/nfs-kernel-server > /dev/null <<'EOF'
-RPCNFSDCOUNT=128
-RPCMOUNTDOPTS="--manage-gids"
-EOF
-
-# Start services
-
-sudo systemctl restart nfs-kernel-server
+# Enable and start NFS service (replaces 'nfs-kernel-server' on Ubuntu)
+sudo systemctl enable --now nfs-server
 
 # SSH Key Management
 
@@ -167,7 +165,7 @@ if [ -n "$${SSH_KEYS}" ]; then
     mkdir -p "$${TARGET_HOME}/.ssh"
     chmod 700 "$${TARGET_HOME}/.ssh"
     touch "$${TARGET_HOME}/.ssh/authorized_keys"
-    
+
     # Process keys line by line
     echo "$${SSH_KEYS}" | while read -r key; do
         if [ -n "$${key}" ] && ! grep -qF "$${key}" "$${TARGET_HOME}/.ssh/authorized_keys"; then
@@ -193,3 +191,7 @@ if [ "$${ACTUAL_RAID_LEVEL}" != "$${RAID_LEVEL#raid-}" ]; then
 fi
 
 echo "Storage server setup completed successfully with $${RAID_LEVEL} array"
+
+# Final reboot to apply all changes
+echo "Rebooting now..."
+sudo reboot

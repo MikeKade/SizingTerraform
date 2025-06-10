@@ -7,6 +7,10 @@
 sudo apt-get -y update
 sudo apt-get install -y pip git bc nfs-common screen net-tools fio
 
+# Upgrade all the installed packages
+
+sudo apt-get -y upgrade
+
 # WARNING!!
 # DO NOT MODIFY ANYTHING BELOW THIS LINE OR INSTANCES MAY NOT START CORRECTLY!
 # ----------------------------------------------------------------------------
@@ -39,7 +43,5 @@ if [ -n "$${SSH_KEYS}" ]; then
     chown -R "$${TARGET_USER}:$${TARGET_USER}" "$${TARGET_HOME}/.ssh"
 fi
 
-# Upgrade software and reboot
-
-sudo apt-get -y upgrade
+# Reboot
 sudo reboot

@@ -7,6 +7,9 @@
 sudo apt update
 sudo apt install -y net-tools nfs-common nfs-kernel-server sysstat mdadm
 
+# Upgrade all installed packages to their latest versions
+sudo apt-get -y upgrade
+
 # WARNING!!
 # DO NOT MODIFY ANYTHING BELOW THIS LINE OR INSTANCES MAY NOT START CORRECTLY!
 # ----------------------------------------------------------------------------
@@ -56,7 +59,7 @@ done
 get_physical_device() {
     local mount_point="$${1}"
     local device=$(findmnt -n -o SOURCE --target "$${mount_point}")
-    
+
     # Handle LVM and partition cases
     if [[ "$${device}" =~ ^/dev/mapper/ ]]; then
         # LVM device - get underlying physical volume
@@ -65,7 +68,7 @@ get_physical_device() {
         # NVMe partition - get the whole device
         device=$${device%p[0-9]*}
     fi
-    
+
     echo "$${device}"
 }
 
@@ -167,7 +170,7 @@ if [ -n "$${SSH_KEYS}" ]; then
     mkdir -p "$${TARGET_HOME}/.ssh"
     chmod 700 "$${TARGET_HOME}/.ssh"
     touch "$${TARGET_HOME}/.ssh/authorized_keys"
-    
+
     # Process keys line by line
     echo "$${SSH_KEYS}" | while read -r key; do
         if [ -n "$${key}" ] && ! grep -qF "$${key}" "$${TARGET_HOME}/.ssh/authorized_keys"; then
@@ -193,3 +196,7 @@ if [ "$${ACTUAL_RAID_LEVEL}" != "$${RAID_LEVEL#raid-}" ]; then
 fi
 
 echo "Storage server setup completed successfully with $${RAID_LEVEL} array"
+
+# Final reboot to apply all changes
+echo "Rebooting now..."
+sudo reboot
