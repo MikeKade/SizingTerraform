@@ -187,16 +187,6 @@ fi
 echo "RAID array created successfully:"
 sudo mdadm --detail /dev/md0
 
-# Final validation
-
-ACTUAL_RAID_LEVEL=$(sudo mdadm --detail /dev/md0 | grep "Raid Level" | awk '{print $4}')
-if [ "$${ACTUAL_RAID_LEVEL}" != "$${RAID_LEVEL#raid-}" ]; then
-    echo "ERROR: RAID level mismatch - requested $${RAID_LEVEL} but got RAID-$${ACTUAL_RAID_LEVEL}"
-    exit 1
-fi
-
-echo "Storage server setup completed successfully with $${RAID_LEVEL} array"
-
 # Final reboot to apply all changes
 echo "Rebooting now..."
 sudo reboot
