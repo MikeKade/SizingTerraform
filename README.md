@@ -11,6 +11,7 @@ This project uses Terraform to provision resources on AWS. The deployment is mod
   - [Storage Server Variables](#storage-server-variables)
   - [Hammerspace Variables](#hammerspace-variables)
 - [How to Use](#how-to-use)
+- [Important Note on Placement Group Deletion](#important-note-on-placement-group-deletion)
 - [Outputs](#outputs)
 - [Modules](#modules)
 - [Customizing Instance Setup via UserData Scripts](#customizing-instance-setup-via-userdata-scripts)
@@ -121,6 +122,18 @@ These variables configure the Hammerspace deployment and are prefixed with `hamm
 4.  **Configure**: Create a `terraform.tfvars` file to set your desired variables. At a minimum, you must provide `project_name`, `vpc_id`, `subnet_id`, `key_name`, and the required `*_ami` variables.
 5.  **Plan**: `terraform plan`
 6.  **Apply**: `terraform apply`
+
+---
+
+## Important Note on Placement Group Deletion
+
+When you run `terraform destroy` on a configuration that created a placement group, you may see an error like this:
+
+`Error: InvalidPlacementGroup.InUse: The placement group ... is in use and may not be deleted.`
+
+This is normal and expected behavior due to a race condition in the AWS API. It happens because Terraform sends the requests to terminate the EC2 instances and delete the placement group at nearly the same time. If the instances haven't fully terminated on the AWS backend, the API will reject the request to delete the group.
+
+**The solution is to simply run `terraform destroy` a second time.** The first run will successfully terminate the instances, and the second run will then be able to successfully delete the now-empty placement group.
 
 ---
 
