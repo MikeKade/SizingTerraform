@@ -75,6 +75,18 @@ resource "aws_instance" "this" {
     volume_type = var.boot_volume_type
   }
 
+  # Add this entire lifecycle block
+  lifecycle {
+    precondition {
+      condition     = var.ebs_count >= {
+        "raid-0" = 2,
+        "raid-5" = 3,
+        "raid-6" = 4
+      }[var.raid_level]
+      error_message = "The selected RAID level (${var.raid_level}) requires at least ${lookup({ "raid-0" = 2, "raid-5" = 3, "raid-6" = 4 }, var.raid_level, 0)} EBS volumes, but only ${var.ebs_count} were specified."
+    }
+  }
+
   tags = merge(var.tags, {
     Name    = "${local.resource_prefix}-${count.index + 1}"
     Project = var.project_name
