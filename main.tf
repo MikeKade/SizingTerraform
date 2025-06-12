@@ -7,7 +7,7 @@ provider "aws" {
   # your credentials in $HOME/.aws/credentials
   #
   # If you choose to use environment variables instead, please leave this commented out
-#  profile = "kade"
+  # profile = "kade"
 }
 
 # Conditionally create the placement group if a name is provided
