@@ -237,17 +237,26 @@ resource "aws_instance" "anvil" {
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = base64encode(local.anvil_sa_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
+
+  # Add this lifecycle block to prevent accidental destruction
+  lifecycle {
+    prevent_destroy	 = true
+  }
+  
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil_sa_ni[0].id
   }
+
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
+
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil" })
   depends_on = [aws_iam_instance_profile.profile]
 }
+
 resource "aws_ebs_volume" "anvil_meta_vol" {
   count               = local.create_standalone_anvil ? 1 : 0
   availability_zone   = var.availability_zone
@@ -257,6 +266,7 @@ resource "aws_ebs_volume" "anvil_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil-MetaVol" })
 }
+
 resource "aws_volume_attachment" "anvil_meta_vol_attach" {
   count       = local.create_standalone_anvil ? 1 : 0
   device_name = "/dev/sdb"
@@ -285,13 +295,16 @@ resource "aws_instance" "anvil1" {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil1_ha_ni[0].id
   }
+
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
+
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil1", Index = "0" })
   depends_on = [aws_iam_instance_profile.profile]
 }
+
 resource "aws_ebs_volume" "anvil1_meta_vol" {
   count               = local.create_ha_anvils ? 1 : 0
   availability_zone   = var.availability_zone
@@ -301,6 +314,7 @@ resource "aws_ebs_volume" "anvil1_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil1-MetaVol" })
 }
+
 resource "aws_volume_attachment" "anvil1_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
   device_name = "/dev/sdb"
@@ -316,6 +330,7 @@ resource "aws_network_interface" "anvil2_ha_ni" {
   tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-NI" })
   depends_on        = [aws_security_group.anvil_data_sg]
 }
+
 resource "aws_instance" "anvil2" {
   count                  = local.create_ha_anvils ? 1 : 0
   ami                    = var.ami
@@ -329,13 +344,16 @@ resource "aws_instance" "anvil2" {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil2_ha_ni[0].id
   }
+
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
+
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil2", Index = "1" })
   depends_on = [aws_instance.anvil1, aws_iam_instance_profile.profile]
 }
+
 resource "aws_ebs_volume" "anvil2_meta_vol" {
   count               = local.create_ha_anvils ? 1 : 0
   availability_zone   = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].availability_zone : var.availability_zone
@@ -345,6 +363,7 @@ resource "aws_ebs_volume" "anvil2_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-MetaVol" })
 }
+
 resource "aws_volume_attachment" "anvil2_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
   device_name = "/dev/sdb"
@@ -361,6 +380,7 @@ resource "aws_network_interface" "dsx_ni" {
   tags                = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}-NI" })
   depends_on          = [aws_security_group.dsx_sg]
 }
+
 resource "aws_instance" "dsx" {
   count                  = var.dsx_count
   ami                    = var.ami
@@ -378,14 +398,17 @@ resource "aws_instance" "dsx" {
     local.dsx_anvils_nodes_config_string,
     local.aws_config_string_part
   ))
+
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.dsx_ni[count.index].id
   }
+
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
+
   tags = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}" })
   depends_on = [aws_iam_instance_profile.profile]
 }

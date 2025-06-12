@@ -58,9 +58,9 @@ locals {
     local.create_ha_anvils && length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].id : null
   )
 
-  # --- UserData String Construction ---
+  # --- UserData String Construction (Simplified) ---
 
-  # Create the aws part of the string only if needed
+  # Create a helper for the optional 'aws' config section
   aws_config_string_part = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: ${local.effective_iam_admin_group_name}" : ""
 
   # Standalone Anvil UserData
@@ -70,21 +70,26 @@ locals {
     local.aws_config_string_part
   ) : null
 
-  # HA Anvil UserData
-  ha_nodes_string = format(
+  # Create the 'nodes' section string once for HA
+  ha_nodes_definition_string = local.create_ha_anvils ? format(
     "'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]%s}}}",
     "${var.project_name}Anvil1",
     "${var.project_name}Anvil2",
     local.anvil2_ha_ni_secondary_ip != null ? format(", cluster_ips: [%s]", local.anvil2_ha_ni_secondary_ip) : ""
-  )
-  anvil_ha_base_userdata = local.create_ha_anvils ? format(
-    "{cluster: {password_auth: False}, nodes: {%s}, aws: {%s}}",
-    local.ha_nodes_string,
+  ) : ""
+
+  # Construct the UserData for each HA node directly
+  anvil1_ha_userdata = local.create_ha_anvils ? format(
+    "{node_index: '0', cluster: {password_auth: False}, nodes: {%s}, aws: {%s}}",
+    local.ha_nodes_definition_string,
     local.aws_config_string_part
   ) : null
 
-  anvil1_ha_userdata = local.create_ha_anvils ? format("{node_index: '0', %s", trimprefix(local.anvil_ha_base_userdata, "{")) : null
-  anvil2_ha_userdata = local.create_ha_anvils ? format("{node_index: '1', %s", trimprefix(local.anvil_ha_base_userdata, "{")) : null
+  anvil2_ha_userdata = local.create_ha_anvils ? format(
+    "{node_index: '1', cluster: {password_auth: False}, nodes: {%s}, aws: {%s}}",
+    local.ha_nodes_definition_string,
+    local.aws_config_string_part
+  ) : null
 
   # --- DSX Node Configuration Helper ---
   # This creates the string that defines the Anvil nodes for the DSX config.

@@ -1,0 +1,63 @@
+name: Terraform CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  terraform-checks:
+    name: Run Terraform Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false # Recommended for CI
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # --- Optional but Recommended Security Scan ---
+      - name: Install Trivy (for tfsec)
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Run Trivy (tfsec) Security Scan
+        run: trivy config .
+
+      # --- Final Dry Run ---
+      - name: Terraform Plan
+        id: plan
+        # AWS credentials must be configured as secrets in your GitHub repository
+        # e.g., AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+        run: terraform plan -no-color
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_project_name: "CI-Test" # Pass required variables
+          TF_VAR_vpc_id: "vpc-0123456789"
+          TF_VAR_subnet_id: "subnet-0123456789"
+          TF_VAR_key_name: "ci-key"
+          TF_VAR_clients_ami: "ami-xxxxxxxx"
+          TF_VAR_storage_ami: "ami-xxxxxxxx"
+	  

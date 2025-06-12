@@ -112,7 +112,7 @@ hammerspace_anvil_meta_disk_type	= "gp3"
 hammerspace_anvil_meta_disk_iops	= 9000
 hammerspace_anvil_meta_disk_throughput	= 1000
 
-hammerspace_dsx_count              	= 4
+hammerspace_dsx_count              	= 0
 hammerspace_dsx_instance_type 	 	= "m6in.8xlarge"
 hammerspace_dsx_ebs_count		= 5
 hammerspace_dsx_ebs_size 	 	= 1000
