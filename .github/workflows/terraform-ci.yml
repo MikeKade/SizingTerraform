@@ -60,4 +60,3 @@ jobs:
           TF_VAR_key_name: ${{ vars.TF_KEY_NAME }}
           TF_VAR_clients_ami: ${{ vars.TF_CLIENTS_AMI }}
           TF_VAR_storage_ami: ${{ vars.TF_STORAGE_AMI }}
-	  
