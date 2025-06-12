@@ -87,6 +87,8 @@ These variables configure the Hammerspace deployment and are prefixed with `hamm
 * **`hammerspace_profile_id`**: Controls IAM Role creation.
     * **For users with restricted IAM permissions**: An admin must pre-create an IAM Instance Profile and provide its name here. Terraform will use the existing profile.
     * **For admin users**: Leave this variable as `""` (blank). Terraform will automatically create the necessary IAM Role and Instance Profile.
+* **`hammerspace_anvil_security_group_id`**: (Optional) The ID of a pre-existing security group to attach to the Anvil nodes. If left blank, the module will create and configure a new security group. This is useful for debugging or integrating with existing network rules.
+* **`hammerspace_dsx_security_group_id`**: (Optional) The ID of a pre-existing security group to attach to the DSX nodes. If left blank, the module will create and configure a new security group.
 * `hammerspace_ami`: AMI ID for Hammerspace instances (Default: example for CentOS 7).
 * `hammerspace_iam_admin_group_id`: IAM admin group for SSH access.
 * `hammerspace_anvil_count`: Number of Anvil instances (0=none, 1=standalone, 2=HA) (Default: `0`).
@@ -146,9 +148,9 @@ After a successful `apply`, Terraform will provide the following outputs. Sensit
 * `storage_instances`: A list of non-sensitive details for each storage instance.
 * `storage_ebs_volumes`: **(Sensitive)** A list of sensitive EBS volume details for each storage server.
 * `hammerspace_anvil`: **(Sensitive)** A list of detailed information for the deployed Anvil nodes.
-* `hammerspace_dsx`: A list of detailed information for the deployed DSX nodes.
+* `hammerspace_dsx`: **(Sensitive)** A list of detailed information for the deployed DSX nodes.
+* `hammerspace_dsx_private_ips`: A list of private IP addresses for the Hammerspace DSX instances.
 * `hammerspace_mgmt_url`: The URL to access the Hammerspace management interface.
-* `dsx_userdata_rendered`: **(Sensitive)** The rendered UserData configuration for the first DSX node, useful for debugging.
 
 ---
 ## Modules

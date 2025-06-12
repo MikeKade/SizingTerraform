@@ -43,7 +43,7 @@ module "clients" {
   tags                 = var.tags
   project_name         = var.project_name
   ssh_keys_dir         = var.ssh_keys_dir
-  placement_group_name = var.placement_group_name
+  placement_group_name = var.placement_group_name != "" ? aws_placement_group.this[0].name : ""
 
   # Client-specific variables
   instance_count   = var.clients_instance_count
@@ -75,7 +75,7 @@ module "storage_servers" {
   tags                 = var.tags
   project_name         = var.project_name
   ssh_keys_dir         = var.ssh_keys_dir
-  placement_group_name = var.placement_group_name
+  placement_group_name = var.placement_group_name != "" ? aws_placement_group.this[0].name : ""
 
   # Storage-specific variables
   instance_count   = var.storage_instance_count
@@ -107,24 +107,26 @@ module "hammerspace" {
   key_name             = var.key_name
   tags                 = var.tags
   project_name         = var.project_name
-  placement_group_name = var.placement_group_name
+  placement_group_name = var.placement_group_name != "" ? aws_placement_group.this[0].name : ""
 
   # Hammerspace-specific variables
-  ami                          = var.hammerspace_ami
-  iam_admin_group_id           = var.hammerspace_iam_admin_group_id
-  profile_id                   = var.hammerspace_profile_id
-  anvil_count                  = var.hammerspace_anvil_count
-  anvil_type                   = var.hammerspace_anvil_instance_type
-  anvil_meta_disk_size         = var.hammerspace_anvil_meta_disk_size
-  anvil_meta_disk_type         = var.hammerspace_anvil_meta_disk_type
-  anvil_meta_disk_iops         = var.hammerspace_anvil_meta_disk_iops
-  anvil_meta_disk_throughput   = var.hammerspace_anvil_meta_disk_throughput
-  dsx_count                    = var.hammerspace_dsx_count
-  dsx_type                     = var.hammerspace_dsx_instance_type
-  dsx_ebs_size                 = var.hammerspace_dsx_ebs_size
-  dsx_ebs_type                 = var.hammerspace_dsx_ebs_type
-  dsx_ebs_iops                 = var.hammerspace_dsx_ebs_iops
-  dsx_ebs_throughput           = var.hammerspace_dsx_ebs_throughput
-  dsx_ebs_count                = var.hammerspace_dsx_ebs_count
-  dsx_add_vols                 = var.hammerspace_dsx_add_vols
+  ami                           = var.hammerspace_ami
+  iam_admin_group_id            = var.hammerspace_iam_admin_group_id
+  profile_id                    = var.hammerspace_profile_id
+  anvil_security_group_id       = var.hammerspace_anvil_security_group_id
+  dsx_security_group_id         = var.hammerspace_dsx_security_group_id
+  anvil_count                   = var.hammerspace_anvil_count
+  anvil_type                    = var.hammerspace_anvil_instance_type
+  anvil_meta_disk_size          = var.hammerspace_anvil_meta_disk_size
+  anvil_meta_disk_type          = var.hammerspace_anvil_meta_disk_type
+  anvil_meta_disk_iops          = var.hammerspace_anvil_meta_disk_iops
+  anvil_meta_disk_throughput    = var.hammerspace_anvil_meta_disk_throughput
+  dsx_count                     = var.hammerspace_dsx_count
+  dsx_type                      = var.hammerspace_dsx_instance_type
+  dsx_ebs_size                  = var.hammerspace_dsx_ebs_size
+  dsx_ebs_type                  = var.hammerspace_dsx_ebs_type
+  dsx_ebs_iops                  = var.hammerspace_dsx_ebs_iops
+  dsx_ebs_throughput            = var.hammerspace_dsx_ebs_throughput
+  dsx_ebs_count                 = var.hammerspace_dsx_ebs_count
+  dsx_add_vols                  = var.hammerspace_dsx_add_vols
 }

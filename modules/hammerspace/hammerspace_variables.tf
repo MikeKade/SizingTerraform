@@ -62,6 +62,18 @@ variable "profile_id" {
   default     = ""
 }
 
+variable "anvil_security_group_id" {
+  description = "Optional: The ID of an existing security group to use for the Anvil nodes. If provided, the module will not create a new one."
+  type        = string
+  default     = ""
+}
+
+variable "dsx_security_group_id" {
+  description = "Optional: The ID of an existing security group to use for the DSX nodes. If provided, the module will not create a new one."
+  type        = string
+  default     = ""
+}
+
 variable "anvil_count" {
   description = "Number of Anvil instances to deploy. 0 = no Anvils; 1 = Standalone; 2+ = HA (2-node)."
   type        = number

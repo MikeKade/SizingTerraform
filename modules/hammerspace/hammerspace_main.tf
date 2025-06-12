@@ -67,7 +67,7 @@ resource "aws_iam_instance_profile" "profile" {
 
 # --- Security Groups ---
 resource "aws_security_group" "anvil_data_sg" {
-  count       = local.should_create_any_anvils ? 1 : 0
+  count       = local.should_create_any_anvils && var.anvil_security_group_id == "" ? 1 : 0
   name        = "${var.project_name}-AnvilDataSG"
   description = "Security group for Anvil metadata servers"
   vpc_id      = var.vpc_id
@@ -144,7 +144,7 @@ resource "aws_security_group" "anvil_data_sg" {
 }
 
 resource "aws_security_group" "dsx_sg" {
-  count       = var.dsx_count > 0 ? 1 : 0
+  count       = var.dsx_count > 0 && var.dsx_security_group_id == "" ? 1 : 0
   name        = "${var.project_name}-DsxSG"
   description = "Security group for DSX data services nodes"
   vpc_id      = var.vpc_id
@@ -224,7 +224,7 @@ resource "aws_security_group" "dsx_sg" {
 resource "aws_network_interface" "anvil_sa_ni" {
   count           = local.create_standalone_anvil ? 1 : 0
   subnet_id       = var.subnet_id
-  security_groups = local.should_create_any_anvils ? [aws_security_group.anvil_data_sg[0].id] : []
+  security_groups = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
   tags            = merge(local.common_tags, { Name = "${var.project_name}-Anvil-NI" })
   depends_on      = [aws_security_group.anvil_data_sg]
 }
@@ -235,15 +235,15 @@ resource "aws_instance" "anvil" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = local.anvil_sa_user_data_b64
+  user_data_base64       = base64encode(local.anvil_sa_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil_sa_ni[0].id
   }
   root_block_device {
-    volume_type = local.block_device_root_config.volume_type
-    volume_size = local.block_device_root_config.volume_size
+    volume_type = "gp3"
+    volume_size = 200
   }
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil" })
   depends_on = [aws_iam_instance_profile.profile]
@@ -268,7 +268,7 @@ resource "aws_volume_attachment" "anvil_meta_vol_attach" {
 resource "aws_network_interface" "anvil1_ha_ni" {
   count           = local.create_ha_anvils ? 1 : 0
   subnet_id       = var.subnet_id
-  security_groups = local.should_create_any_anvils ? [aws_security_group.anvil_data_sg[0].id] : []
+  security_groups = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
   tags            = merge(local.common_tags, { Name = "${var.project_name}-Anvil1-NI" })
   depends_on      = [aws_security_group.anvil_data_sg]
 }
@@ -279,15 +279,15 @@ resource "aws_instance" "anvil1" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = local.anvil1_ha_user_data_b64
+  user_data_base64       = base64encode(local.anvil1_ha_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil1_ha_ni[0].id
   }
   root_block_device {
-    volume_type = local.block_device_root_config.volume_type
-    volume_size = local.block_device_root_config.volume_size
+    volume_type = "gp3"
+    volume_size = 200
   }
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil1", Index = "0" })
   depends_on = [aws_iam_instance_profile.profile]
@@ -311,7 +311,7 @@ resource "aws_volume_attachment" "anvil1_meta_vol_attach" {
 resource "aws_network_interface" "anvil2_ha_ni" {
   count             = local.create_ha_anvils ? 1 : 0
   subnet_id         = var.subnet_id
-  security_groups   = local.should_create_any_anvils ? [aws_security_group.anvil_data_sg[0].id] : []
+  security_groups   = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
   private_ips_count = 2
   tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-NI" })
   depends_on        = [aws_security_group.anvil_data_sg]
@@ -323,15 +323,15 @@ resource "aws_instance" "anvil2" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = local.anvil2_ha_user_data_b64
+  user_data_base64       = base64encode(local.anvil2_ha_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil2_ha_ni[0].id
   }
   root_block_device {
-    volume_type = local.block_device_root_config.volume_type
-    volume_size = local.block_device_root_config.volume_size
+    volume_type = "gp3"
+    volume_size = 200
   }
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil2", Index = "1" })
   depends_on = [aws_instance.anvil1, aws_iam_instance_profile.profile]
@@ -356,7 +356,7 @@ resource "aws_volume_attachment" "anvil2_meta_vol_attach" {
 resource "aws_network_interface" "dsx_ni" {
   count               = var.dsx_count
   subnet_id           = var.subnet_id
-  security_groups     = var.dsx_count > 0 ? [aws_security_group.dsx_sg[0].id] : []
+  security_groups     = local.effective_dsx_sg_id != null ? [local.effective_dsx_sg_id] : []
   source_dest_check   = false
   tags                = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}-NI" })
   depends_on          = [aws_security_group.dsx_sg]
@@ -369,17 +369,22 @@ resource "aws_instance" "dsx" {
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
-  user_data_base64 = base64encode(templatefile("${path.module}/templates/dsx.tftpl", merge(
-    local.dsx_user_data_template_vars_base,
-    { dsx_node_index_param = count.index + 1 }
-  )))
+  user_data_base64 = base64encode(format(
+    "{cluster: {password_auth: False, password: %s, metadata: {ips: [%s/20]}}, nodes: {'0': {hostname: %s, features: [storage, portal], networks: {eth0: {roles: [data, mgmt]}}, add_volumes: %s}, %s}, aws: {%s}}",
+    local.effective_anvil_id_for_dsx_password,
+    local.effective_anvil_ip_for_dsx_metadata,
+    "${var.project_name}DSX${count.index + 1}",
+    local.dsx_add_volumes_bool ? "True" : "False",
+    local.dsx_anvils_nodes_config_string,
+    local.aws_config_string_part
+  ))
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.dsx_ni[count.index].id
   }
   root_block_device {
-    volume_type = local.block_device_root_config.volume_type
-    volume_size = local.block_device_root_config.volume_size
+    volume_type = "gp3"
+    volume_size = 200
   }
   tags = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}" })
   depends_on = [aws_iam_instance_profile.profile]

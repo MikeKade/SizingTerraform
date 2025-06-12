@@ -5,7 +5,7 @@ output "management_ip" {
 
 output "management_url" {
   description = "Management URL for the Hammerspace cluster."
-  value       = local.management_ip_for_url != "N/A - Configure ClusterIP or check Anvil instance details." ? "https://${local.management_ip_for_url}" : "N/A"
+  value       = local.management_ip_for_url != "N/A - Anvil instance details not available." ? "https://${local.management_ip_for_url}" : "N/A"
 }
 
 output "anvil_instances" {
@@ -54,6 +54,7 @@ output "anvil_instances" {
 
 output "dsx_instances" {
   description = "Details of deployed DSX instances."
+  sensitive   = true # <-- ADDED
   value = [
     for i, inst in aws_instance.dsx : {
       index           = i + 1
@@ -77,36 +78,26 @@ output "primary_management_anvil_instance_id" {
   )
 }
 
-output "iam_admin_group_name" {
-  description = "Name of the IAM Admin Group, if configured and enabled."
-  value       = local.enable_iam_admin_group ? local.effective_iam_admin_group_name : "IAM Admin Group access not enabled."
-}
-
-output "iam_admin_group_console_url" {
-  description = "If an IAM Admin Group was enabled/created, URL to access it in the AWS Console."
-  value       = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "https://console.aws.amazon.com/iam/home?#groups/${local.effective_iam_admin_group_name}" : "IAM Admin Group access not enabled or group name not determined."
-}
-
 output "anvil_standalone_userdata_rendered" {
-  description = "Rendered UserData for the Standalone Anvil instance (if created)."
-  value       = local.anvil_sa_userdata_rendered
+  description = "Rendered YAML UserData for the Standalone Anvil instance (if created)."
+  value       = local.anvil_sa_userdata
   sensitive   = true
 }
 
 output "anvil_ha_node1_userdata_rendered" {
-  description = "Rendered UserData for Anvil HA Node 1 (if created)."
-  value       = local.anvil1_ha_userdata_rendered
+  description = "Rendered YAML UserData for Anvil HA Node 1 (if created)."
+  value       = local.anvil1_ha_userdata
   sensitive   = true
 }
 
 output "anvil_ha_node2_userdata_rendered" {
-  description = "Rendered UserData for Anvil HA Node 2 (if created)."
-  value       = local.anvil2_ha_userdata_rendered
+  description = "Rendered YAML UserData for Anvil HA Node 2 (if created)."
+  value       = local.anvil2_ha_userdata
   sensitive   = true
 }
 
-output "dsx_userdata_rendered" {
-  description = "Rendered UserData for the first DSX node (if any DSX nodes are created)."
-  value       = local.dsx_node1_userdata_rendered
-  sensitive   = true
+# NEW output for just the private IPs
+output "dsx_private_ips" {
+  description = "A list of the private IP addresses of the deployed DSX instances."
+  value       = [for inst in aws_instance.dsx : inst.private_ip]
 }

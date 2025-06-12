@@ -95,6 +95,10 @@ storage_target_user 		 	= "ubuntu"
 
 hammerspace_ami				= "ami-02300b13d054bff31"
 
+# --- Optional: Provide existing Security Group IDs for debugging ---
+hammerspace_anvil_security_group_id     = "sg-0f888587d7e83bda2"
+hammerspace_dsx_security_group_id       = "sg-0f888587d7e83bda2"
+
 # If you do not have permissions in your AWS environment to create roles
 # and permissions, then enter the name of a predefined role with appropriate
 # permissions in the hammerspace_profile_id variable. If you have the capability
@@ -108,10 +112,10 @@ hammerspace_anvil_meta_disk_type	= "gp3"
 hammerspace_anvil_meta_disk_iops	= 9000
 hammerspace_anvil_meta_disk_throughput	= 1000
 
-hammerspace_dsx_count              	= 1
+hammerspace_dsx_count              	= 4
 hammerspace_dsx_instance_type 	 	= "m6in.8xlarge"
-hammerspace_dsx_ebs_count		= 2
-hammerspace_dsx_ebs_size 	 	= 500
+hammerspace_dsx_ebs_count		= 5
+hammerspace_dsx_ebs_size 	 	= 1000
 hammerspace_dsx_ebs_type		= "gp3"
 hammerspace_dsx_ebs_iops		= 6000
 hammerspace_dsx_ebs_throughput		= 1000

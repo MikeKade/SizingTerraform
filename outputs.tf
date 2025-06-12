@@ -28,6 +28,7 @@ output "hammerspace_anvil" {
 
 output "hammerspace_dsx" {
   description = "Hammerspace DSX details"
+  sensitive   = true # <-- ADDED
   value       = module.hammerspace[*].dsx_instances
 }
 
@@ -41,8 +42,8 @@ output "hammerspace_mgmt_url" {
   value       = module.hammerspace[*].management_url
 }
 
-output "dsx_userdata_rendered" {
-  description = "The rendered UserData configuration for the first DSX node."
-  value       = module.hammerspace[0].dsx_userdata_rendered
-  sensitive   = true
+# NEW output for the list of DSX private IPs
+output "hammerspace_dsx_private_ips" {
+  description = "A list of private IP addresses for the Hammerspace DSX instances."
+  value       = module.hammerspace[*].dsx_private_ips
 }

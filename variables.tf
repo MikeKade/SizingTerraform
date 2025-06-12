@@ -235,6 +235,18 @@ variable "hammerspace_profile_id" {
   default     = ""
 }
 
+variable "hammerspace_anvil_security_group_id" {
+  description = "Optional: An existing security group ID to use for the Anvil nodes."
+  type        = string
+  default     = ""
+}
+
+variable "hammerspace_dsx_security_group_id" {
+  description = "Optional: An existing security group ID to use for the DSX nodes."
+  type        = string
+  default     = ""
+}
+
 variable "hammerspace_anvil_count" {
   description = "Number of Anvil instances to deploy (0=none, 1=standalone, 2=HA)"
   type        = number
