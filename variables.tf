@@ -50,14 +50,14 @@ variable "ssh_keys_dir" {
 }
 
 variable "deploy_components" {
-  description = "Components to deploy. Valid values in the list are: \"all\", \"clients\", \"storage\", \"hammerspace\"."
+  description = "Components to deploy. Valid values in the list are: \"all\", \"runner\", \"clients\", \"storage\", \"hammerspace\"."
   type        = list(string)
   default     = ["all"]
   validation {
     condition = alltrue([
-      for c in var.deploy_components : contains(["all", "clients", "storage", "hammerspace"], c)
+      for c in var.deploy_components : contains(["all", "runner", "clients", "storage", "hammerspace"], c)
     ])
-    error_message = "Each item in deploy_components must be one of: \"all\", \"clients\", \"storage\", or \"hammerspace\"."
+    error_message = "Each item in deploy_components must be one of: \"all\", \"runner\", \"clients\", \"storage\", or \"hammerspace\"."
   }
 }
 
@@ -350,3 +350,47 @@ variable "placement_group_strategy" {
     error_message = "Allowed values for placement_group_strategy are: cluster, spread, or partition."
   }
 }
+
+# RUNNER-SPECIFIC VARIABLES (WITH runner_ PREFIX)
+variable "runner_instance_count" {
+  description = "Number of client instances"
+  type        = number
+  default     = 1
+}
+
+variable "runner_ami" {
+  description = "AMI for client instances"
+  type        = string
+}
+
+variable "runner_instance_type" {
+  description = "Instance type for runner"
+  type        = string
+  default     = "m5n.8xlarge"
+}
+
+variable "runner_boot_volume_size" {
+  description = "Root volume size (GB) for runner"
+  type        = number
+  default     = 100
+}
+
+variable "runner_boot_volume_type" {
+  description = "Root volume type for runner"
+  type        = string
+  default     = "gp2"
+}
+
+variable "runner_user_data" {
+  description = "Path to user data script for runner"
+  type        = string
+  default     = ""
+}
+
+variable "runner_target_user" {
+  description = "Default system user for runner EC2s"
+  type        = string
+  default     = "ubuntu"
+}
+
+

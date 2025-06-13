@@ -240,7 +240,7 @@ resource "aws_instance" "anvil" {
 
   # Add this lifecycle block to prevent accidental destruction
   lifecycle {
-    prevent_destroy	 = true
+    prevent_destroy	 = false
   }
   
   network_interface {

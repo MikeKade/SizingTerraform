@@ -7,7 +7,7 @@ provider "aws" {
   # your credentials in $HOME/.aws/credentials
   #
   # If you choose to use environment variables instead, please leave this commented out
-  # profile = "kade"
+  profile = "kade"
 }
 
 # Conditionally create the placement group if a name is provided
@@ -26,6 +26,7 @@ locals {
   deploy_clients     = contains(var.deploy_components, "all") || contains(var.deploy_components, "clients")
   deploy_storage     = contains(var.deploy_components, "all") || contains(var.deploy_components, "storage")
   deploy_hammerspace = contains(var.deploy_components, "all") || contains(var.deploy_components, "hammerspace")
+  deploy_runner     = contains(var.deploy_components, "all") || contains(var.deploy_components, "runner")
 }
 
 # Deploy the clients module if requested
@@ -129,4 +130,33 @@ module "hammerspace" {
   dsx_ebs_throughput            = var.hammerspace_dsx_ebs_throughput
   dsx_ebs_count                 = var.hammerspace_dsx_ebs_count
   dsx_add_vols                  = var.hammerspace_dsx_add_vols
+}
+
+module "runner" {
+  count  = local.deploy_runner ? 1 : 0
+  source = "./modules/runner"
+
+  mgmt_ip = flatten(module.hammerspace[*].management_ip)
+  anvil_instances = flatten(module.hammerspace[*].anvil_instances)
+  storage_instances = flatten(module.storage_servers[*].instance_details)
+
+  # Global variables
+  region               = var.region
+  availability_zone    = var.availability_zone
+  vpc_id               = var.vpc_id
+  subnet_id            = var.subnet_id
+  key_name             = var.key_name
+  tags                 = var.tags
+  project_name         = var.project_name
+  ssh_keys_dir         = var.ssh_keys_dir
+  placement_group_name = var.placement_group_name
+
+  # Runner-specific variables
+  instance_count   = var.runner_instance_count
+  ami              = var.runner_ami
+  instance_type    = var.runner_instance_type
+  boot_volume_size = var.runner_boot_volume_size
+  boot_volume_type = var.runner_boot_volume_type
+  user_data        = var.runner_user_data
+  target_user      = var.runner_target_user
 }

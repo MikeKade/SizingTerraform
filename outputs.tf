@@ -23,12 +23,12 @@ output "storage_ebs_volumes" {
 output "hammerspace_anvil" {
   description = "Hammerspace Anvil details"
   value       = module.hammerspace[*].anvil_instances
-  sensitive   = true
+  sensitive   = false
 }
 
 output "hammerspace_dsx" {
   description = "Hammerspace DSX details"
-  sensitive   = true # <-- ADDED
+  sensitive   = true 
   value       = module.hammerspace[*].dsx_instances
 }
 
@@ -46,4 +46,9 @@ output "hammerspace_mgmt_url" {
 output "hammerspace_dsx_private_ips" {
   description = "A list of private IP addresses for the Hammerspace DSX instances."
   value       = module.hammerspace[*].dsx_private_ips
+}
+
+output "runner_details" {
+  description = "Runner details"
+  value = module.runner[*].instance_details
 }
