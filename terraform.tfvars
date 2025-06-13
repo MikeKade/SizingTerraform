@@ -1,10 +1,10 @@
 # Which components to deploy
 #
-# Valid answers are "clients", "storage", "hammerspace", or "all". The
+# Valid answers are "runner", "clients", "storage", "hammerspace", or "all". The
 # structure is a list, so you can say "storage", "hammerspace" to deploy
 # both of those
 
-deploy_components			= ["hammerspace"]
+deploy_components			= ["runner", "storage", "hammerspace"]
 
 # Placement Group
 #
@@ -119,3 +119,28 @@ hammerspace_dsx_ebs_size 	 	= 1000
 hammerspace_dsx_ebs_type		= "gp3"
 hammerspace_dsx_ebs_iops		= 6000
 hammerspace_dsx_ebs_throughput		= 1000
+
+# Runner specific variables (runner_ prefix)
+#
+# The only thing that might be confusing are the variables:
+# "runner_user_data" and "runner_target_user". In AWS, the login
+# to a EC2 instance is usually of the form:
+# "ssh -i PEM_FILE OS_NAME@IP_ADDRESS"
+#
+# So, the runner_target_user is the OS_NAME for the login. Once you
+# have logged in once, you can create as many users as you want. But,
+# that first default user is the OS_NAME (or in this case "ubuntu"
+#
+# The runner_user_data is a location where a bash shell script is stored.
+# You can modify that script as it is passed to the EC2 instance during
+# instantiation. It can be used for further configuration. Remember that
+# the script MUST conform to the OS that you are instantiating. Today,
+# we only have scripts for ubuntu and rocky.
+
+runner_instance_count			= 1
+runner_ami 				= "ami-075686beab831bb7f"
+runner_instance_type 		 	= "t3.medium"
+runner_boot_volume_size		= 40
+runner_boot_volume_type		= "gp2"
+runner_user_data 		 	= "./templates/runner_config_ubuntu.sh"
+runner_target_user 		 	= "ubuntu"
