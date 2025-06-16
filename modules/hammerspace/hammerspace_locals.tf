@@ -70,25 +70,24 @@ locals {
     local.aws_config_string_part
   ) : null
 
-  # Create the 'nodes' section string once for HA
-  ha_nodes_definition_string = local.create_ha_anvils ? format(
-    "'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]%s}}}",
+  # MODIFIED: Logic for HA Anvil UserData to match the new required format
+  # First, create the common string for the cluster definition
+  ha_cluster_definition_string = local.create_ha_anvils ? format(
+    "{cluster: {password_auth: False}, aws: {%s}, nodes: {'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}}}",
+    local.aws_config_string_part,
     "${var.project_name}Anvil1",
-    "${var.project_name}Anvil2",
-    local.anvil2_ha_ni_secondary_ip != null ? format(", cluster_ips: [%s]", local.anvil2_ha_ni_secondary_ip) : ""
+    "${var.project_name}Anvil2"
   ) : ""
-
-  # Construct the UserData for each HA node directly
+  
+  # Then, construct the final UserData for each node by prepending the unique node_index
   anvil1_ha_userdata = local.create_ha_anvils ? format(
-    "{node_index: '0', cluster: {password_auth: False}, nodes: {%s}, aws: {%s}}",
-    local.ha_nodes_definition_string,
-    local.aws_config_string_part
+    "{node_index: '0', %s", 
+    trimprefix(local.ha_cluster_definition_string, "{")
   ) : null
 
   anvil2_ha_userdata = local.create_ha_anvils ? format(
-    "{node_index: '1', cluster: {password_auth: False}, nodes: {%s}, aws: {%s}}",
-    local.ha_nodes_definition_string,
-    local.aws_config_string_part
+    "{node_index: '1', %s", 
+    trimprefix(local.ha_cluster_definition_string, "{")
   ) : null
 
   # --- DSX Node Configuration Helper ---

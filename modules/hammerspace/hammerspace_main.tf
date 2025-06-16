@@ -237,26 +237,20 @@ resource "aws_instance" "anvil" {
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = base64encode(local.anvil_sa_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
-
-  # Add this lifecycle block to prevent accidental destruction
-  lifecycle {
-    prevent_destroy	 = true
-  }
   
+  # REMOVED the incorrect lifecycle block from here
+
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil_sa_ni[0].id
   }
-
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
-
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil" })
   depends_on = [aws_iam_instance_profile.profile]
 }
-
 resource "aws_ebs_volume" "anvil_meta_vol" {
   count               = local.create_standalone_anvil ? 1 : 0
   availability_zone   = var.availability_zone
@@ -266,7 +260,6 @@ resource "aws_ebs_volume" "anvil_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil-MetaVol" })
 }
-
 resource "aws_volume_attachment" "anvil_meta_vol_attach" {
   count       = local.create_standalone_anvil ? 1 : 0
   device_name = "/dev/sdb"
@@ -291,20 +284,26 @@ resource "aws_instance" "anvil1" {
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = base64encode(local.anvil1_ha_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
+
+  # ADDED the correct lifecycle block here
+  lifecycle {
+    precondition {
+      condition     = length(aws_instance.anvil) == 0
+      error_message = "Changing from a 1-node standalone Anvil to a 2-node HA Anvil is a destructive action and is not allowed. Please destroy the old environment first and then create the new HA environment."
+    }
+  }
+
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil1_ha_ni[0].id
   }
-
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
-
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil1", Index = "0" })
   depends_on = [aws_iam_instance_profile.profile]
 }
-
 resource "aws_ebs_volume" "anvil1_meta_vol" {
   count               = local.create_ha_anvils ? 1 : 0
   availability_zone   = var.availability_zone
@@ -314,7 +313,6 @@ resource "aws_ebs_volume" "anvil1_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil1-MetaVol" })
 }
-
 resource "aws_volume_attachment" "anvil1_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
   device_name = "/dev/sdb"
@@ -326,11 +324,10 @@ resource "aws_network_interface" "anvil2_ha_ni" {
   count             = local.create_ha_anvils ? 1 : 0
   subnet_id         = var.subnet_id
   security_groups   = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
-  private_ips_count = 2
+  private_ips_count = 1
   tags              = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-NI" })
   depends_on        = [aws_security_group.anvil_data_sg]
 }
-
 resource "aws_instance" "anvil2" {
   count                  = local.create_ha_anvils ? 1 : 0
   ami                    = var.ami
@@ -340,20 +337,26 @@ resource "aws_instance" "anvil2" {
   iam_instance_profile   = local.effective_instance_profile_ref
   user_data_base64       = base64encode(local.anvil2_ha_userdata)
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
+
+  # ADDED the correct lifecycle block here
+  lifecycle {
+    precondition {
+      condition     = length(aws_instance.anvil) == 0
+      error_message = "Changing from a 1-node standalone Anvil to a 2-node HA Anvil is a destructive action and is not allowed. Please destroy the old environment first and then create the new HA environment."
+    }
+  }
+
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.anvil2_ha_ni[0].id
   }
-
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
-
   tags = merge(local.common_tags, { Name = "${var.project_name}-Anvil2", Index = "1" })
   depends_on = [aws_instance.anvil1, aws_iam_instance_profile.profile]
 }
-
 resource "aws_ebs_volume" "anvil2_meta_vol" {
   count               = local.create_ha_anvils ? 1 : 0
   availability_zone   = length(aws_instance.anvil2) > 0 ? aws_instance.anvil2[0].availability_zone : var.availability_zone
@@ -363,7 +366,6 @@ resource "aws_ebs_volume" "anvil2_meta_vol" {
   throughput          = var.anvil_meta_disk_type == "gp3" ? var.anvil_meta_disk_throughput : null
   tags                = merge(local.common_tags, { Name = "${var.project_name}-Anvil2-MetaVol" })
 }
-
 resource "aws_volume_attachment" "anvil2_meta_vol_attach" {
   count       = local.create_ha_anvils ? 1 : 0
   device_name = "/dev/sdb"
@@ -380,7 +382,6 @@ resource "aws_network_interface" "dsx_ni" {
   tags                = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}-NI" })
   depends_on          = [aws_security_group.dsx_sg]
 }
-
 resource "aws_instance" "dsx" {
   count                  = var.dsx_count
   ami                    = var.ami
@@ -398,17 +399,14 @@ resource "aws_instance" "dsx" {
     local.dsx_anvils_nodes_config_string,
     local.aws_config_string_part
   ))
-
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.dsx_ni[count.index].id
   }
-
   root_block_device {
     volume_type = "gp3"
     volume_size = 200
   }
-
   tags = merge(local.common_tags, { Name = "${var.project_name}-DSX${count.index + 1}" })
   depends_on = [aws_iam_instance_profile.profile]
 }

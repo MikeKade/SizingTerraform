@@ -7,7 +7,7 @@ provider "aws" {
   # your credentials in $HOME/.aws/credentials
   #
   # If you choose to use environment variables instead, please leave this commented out
-  # profile = "kade"
+  profile = "kade"
 }
 
 # Conditionally create the placement group if a name is provided
@@ -115,12 +115,14 @@ module "hammerspace" {
   profile_id                    = var.hammerspace_profile_id
   anvil_security_group_id       = var.hammerspace_anvil_security_group_id
   dsx_security_group_id         = var.hammerspace_dsx_security_group_id
+
   anvil_count                   = var.hammerspace_anvil_count
   anvil_type                    = var.hammerspace_anvil_instance_type
   anvil_meta_disk_size          = var.hammerspace_anvil_meta_disk_size
   anvil_meta_disk_type          = var.hammerspace_anvil_meta_disk_type
   anvil_meta_disk_iops          = var.hammerspace_anvil_meta_disk_iops
   anvil_meta_disk_throughput    = var.hammerspace_anvil_meta_disk_throughput
+
   dsx_count                     = var.hammerspace_dsx_count
   dsx_type                      = var.hammerspace_dsx_instance_type
   dsx_ebs_size                  = var.hammerspace_dsx_ebs_size

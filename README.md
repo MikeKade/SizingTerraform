@@ -10,6 +10,7 @@ This project uses Terraform to provision resources on AWS. The deployment is mod
   - [Client Variables](#client-variables)
   - [Storage Server Variables](#storage-server-variables)
   - [Hammerspace Variables](#hammerspace-variables)
+- [Required IAM Permissions for Custom Instance Profile](#required-iam-permissions-for-custom-instance-profile)
 - [How to Use](#how-to-use)
 - [Important Note on Placement Group Deletion](#important-note-on-placement-group-deletion)
 - [Outputs](#outputs)
@@ -108,59 +109,55 @@ These variables configure the Hammerspace deployment and are prefixed with `hamm
 
 ---
 
-## How to Use
+## Required IAM Permissions for Custom Instance Profile
+If you are using the `hammerspace_profile_id` variable to provide a pre-existing IAM Instance Profile, the associated IAM Role must have a policy attached with the following permissions.
 
-1.  **Prerequisites**:
-    * Install Terraform.
-    * Install and configure the AWS CLI. Your credentials should be stored in `~/.aws/credentials`.
-2.  **Configure Authentication**: Open `main.tf` and set the `profile` argument in the `provider "aws"` block to match the profile name in your credentials file.
-    ```terraform
-    provider "aws" {
-      region  = var.region
-      profile = "your-profile-name"
-    }
-    ```
-3.  **Initialize**: `terraform init`
-4.  **Configure**: Create a `terraform.tfvars` file to set your desired variables. At a minimum, you must provide `project_name`, `vpc_id`, `subnet_id`, `key_name`, and the required `*_ami` variables.
-5.  **Plan**: `terraform plan`
-6.  **Apply**: `terraform apply`
+**Summary for AWS Administrators:**
+1.  Create an IAM Policy with the JSON below.
+2.  Create an IAM Role for the EC2 Service (`ec2.amazonaws.com`).
+3.  Attach the new policy to the role.
+4.  Create an Instance Profile and attach the role to it.
+5.  Provide the name of the **Instance Profile** to the user running Terraform.
 
----
-
-## Important Note on Placement Group Deletion
-
-When you run `terraform destroy` on a configuration that created a placement group, you may see an error like this:
-
-`Error: InvalidPlacementGroup.InUse: The placement group ... is in use and may not be deleted.`
-
-This is normal and expected behavior due to a race condition in the AWS API. It happens because Terraform sends the requests to terminate the EC2 instances and delete the placement group at nearly the same time. If the instances haven't fully terminated on the AWS backend, the API will reject the request to delete the group.
-
-**The solution is to simply run `terraform destroy` a second time.** The first run will successfully terminate the instances, and the second run will then be able to successfully delete the now-empty placement group.
-
----
-
-## Outputs
-
-After a successful `apply`, Terraform will provide the following outputs. Sensitive values will be redacted and can be viewed with `terraform output <output_name>`.
-
-* `client_instances`: A list of non-sensitive details for each client instance (ID, IP, Name).
-* `client_ebs_volumes`: **(Sensitive)** A list of sensitive EBS volume details for each client.
-* `storage_instances`: A list of non-sensitive details for each storage instance.
-* `storage_ebs_volumes`: **(Sensitive)** A list of sensitive EBS volume details for each storage server.
-* `hammerspace_anvil`: **(Sensitive)** A list of detailed information for the deployed Anvil nodes.
-* `hammerspace_dsx`: **(Sensitive)** A list of detailed information for the deployed DSX nodes.
-* `hammerspace_dsx_private_ips`: A list of private IP addresses for the Hammerspace DSX instances.
-* `hammerspace_mgmt_url`: The URL to access the Hammerspace management interface.
-
----
-## Modules
-
-This project is structured into the following modules:
-* **clients**: Deploys client EC2 instances.
-* **storage_servers**: Deploys storage server EC2 instances with configurable RAID and NFS exports.
-* **hammerspace**: Deploys Hammerspace Anvil (metadata) and DSX (data) nodes.
-
----
-## Customizing Instance Setup via UserData Scripts
-
-The `client` and `storage_server` instances are configured at boot time using the scripts located in the `templates/` directory. You can customize these scripts to install additional software or perform other setup tasks. See the comments at the top of each script for guidance.
+**Required IAM Policy JSON:**
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "SSHKeyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListSSHPublicKeys",
+                "iam:GetSSHPublicKey",
+                "iam:GetGroup"
+            ],
+            "Resource": "arn:aws:iam::*:user/*"
+        },
+        {
+            "Sid": "HAInstanceDiscovery",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceAttribute",
+                "ec2:DescribeTags"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "HAFloatingIP",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AssignPrivateIpAddresses",
+                "ec2:UnassignPrivateIpAddresses"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "MarketplaceMetering",
+            "Effect": "Allow",
+            "Action": "aws-marketplace:MeterUsage",
+            "Resource": "*"
+        }
+    ]
+}
