@@ -3,11 +3,18 @@
 provider "aws" {
   region = var.region
 
-  # Uncomment the next line and fill in your profile name. This is used to lookup
-  # your credentials in $HOME/.aws/credentials
+  # The profile line is commented out for CI/CD compatibility.
+  # It will be defined in a local-only override file. You should
+  # not uncomment the following line.
+
+  # profile = "kade"
+
+  # Instead, build a file called
+  # local_override.tf and include the following:
   #
-  # If you choose to use environment variables instead, please leave this commented out
-  profile = "kade"
+  # provider "aws" {
+  # profile = "kade"
+  # }
 }
 
 # Conditionally create the placement group if a name is provided

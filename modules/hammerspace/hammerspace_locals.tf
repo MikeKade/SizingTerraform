@@ -73,10 +73,14 @@ locals {
   # MODIFIED: Logic for HA Anvil UserData to match the new required format
   # First, create the common string for the cluster definition
   ha_cluster_definition_string = local.create_ha_anvils ? format(
-    "{cluster: {password_auth: False}, aws: {%s}, nodes: {'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha]}}}}}",
+    "{cluster: {password_auth: False}, aws: {%s}, nodes: {'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha], cluster_ips: [%s], ips: [%s]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha], cluster_ips: [%s], ips: [%s]}}}}}",
     local.aws_config_string_part,
     "${var.project_name}Anvil1",
-    "${var.project_name}Anvil2"
+    local.management_ip_for_url,
+    length(aws_network_interface.anvil1_ha_ni) > 0 ? aws_network_interface.anvil1_ha_ni[0].private_ip : "PEER_IP_PENDING",
+    "${var.project_name}Anvil2",
+    local.management_ip_for_url,
+    length(aws_network_interface.anvil2_ha_ni) > 0 ? aws_network_interface.anvil2_ha_ni[0].private_ip : "PEER_IP_PENDING"
   ) : ""
   
   # Then, construct the final UserData for each node by prepending the unique node_index

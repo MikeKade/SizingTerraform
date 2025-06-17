@@ -73,6 +73,13 @@ resource "aws_security_group" "anvil_data_sg" {
   vpc_id      = var.vpc_id
   tags        = local.common_tags
 
+  egress {
+    from_port	= 0
+    to_port	= 0
+    protocol	= "-1"
+    cidr_blocks	= [var.sec_ip_cidr]
+  }
+  
   ingress {
     protocol    = "icmp"
     from_port   = -1
@@ -81,7 +88,7 @@ resource "aws_security_group" "anvil_data_sg" {
   }
   # Anvil TCP Ports
   dynamic "ingress" {
-    for_each = [22, 80, 111, 161, 443, 662, 2049, 2224, 4379, 7789, 8443, 9093, 9097, 9298, 9399, 20048, 20491, 20492, 21064, 50000, 51000, 53030]
+    for_each = [22, 80, 111, 161, 443, 662, 2049, 2224, 4379, 8443, 9097, 9099, 9399, 20048, 20491, 20492, 21064, 50000, 51000, 53030]
     content {
       protocol    = "tcp"
       from_port   = ingress.value
@@ -150,6 +157,13 @@ resource "aws_security_group" "dsx_sg" {
   vpc_id      = var.vpc_id
   tags        = local.common_tags
 
+  egress {
+    from_port	= 0
+    to_port	= 0
+    protocol	= "-1"
+    cidr_blocks	= [var.sec_ip_cidr]
+  }
+  
   ingress {
     protocol    = "icmp"
     from_port   = -1

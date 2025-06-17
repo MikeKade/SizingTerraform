@@ -93,7 +93,7 @@ storage_target_user 		 	= "ubuntu"
 
 # Hammerspace (Anvil, DSX) specific variables
 
-hammerspace_ami				= "ami-02300b13d054bff31"
+hammerspace_ami				= "ami-094d8e62982f34834"
 
 # --- Optional: Provide existing Security Group IDs for debugging ---
 # hammerspace_anvil_security_group_id     = "sg-0f888587d7e83bda2"
@@ -105,12 +105,17 @@ hammerspace_ami				= "ami-02300b13d054bff31"
 # to create a role, then comment out that variable
 
 # hammerspace_profile_id			= "Hammerspace"
-hammerspace_anvil_count			= 1
+
+# Anvil specific
+
+hammerspace_anvil_count			= 2
 hammerspace_anvil_instance_type 	= "m6in.8xlarge"
 hammerspace_anvil_meta_disk_size	= 1000
 hammerspace_anvil_meta_disk_type	= "gp3"
 hammerspace_anvil_meta_disk_iops	= 9000
 hammerspace_anvil_meta_disk_throughput	= 1000
+
+# DSX specific
 
 hammerspace_dsx_count              	= 1
 hammerspace_dsx_instance_type 	 	= "m6in.8xlarge"

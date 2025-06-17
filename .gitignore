@@ -1,6 +1,9 @@
 # Local .terraform directories
 .terraform/
 
+# Don't pass in local_override.tf file
+local_override.tf
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
