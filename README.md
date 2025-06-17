@@ -10,7 +10,7 @@ This project uses Terraform to provision resources on AWS. The deployment is mod
   - [Client Variables](#client-variables)
   - [Storage Server Variables](#storage-server-variables)
   - [Hammerspace Variables](#hammerspace-variables)
-- [Required IAM Permissions for Custom Instance Profile](#required-iam-permissions-for-custom instance-profile)
+- [Required IAM Permissions for Custom Instance Profile](#required-iam-permissions-for-custom-instance-profile)
 - [How to Use](#how-to-use)
 - [Important Note on Placement Group Deletion](#important-note-on-placement-group-deletion)
 - [Outputs](#outputs)
