@@ -12,6 +12,7 @@ This project uses Terraform to provision resources on AWS. The deployment is mod
   - [Hammerspace Variables](#hammerspace-variables)
 - [Required IAM Permissions for Custom Instance Profile](#required-iam-permissions-for-custom-instance-profile)
 - [How to Use](#how-to-use)
+  - [Local Development Setup (AWS Profile)](#local-development-setup-aws-profile)
 - [Important Note on Placement Group Deletion](#important-note-on-placement-group-deletion)
 - [Outputs](#outputs)
 - [Modules](#modules)
@@ -119,7 +120,6 @@ If you are using the `hammerspace_profile_id` variable to provide a pre-existing
 5.  Provide the name of the **Instance Profile** to the user running Terraform.
 
 **Required IAM Policy JSON:**
-```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -160,8 +160,6 @@ If you are using the `hammerspace_profile_id` variable to provide a pre-existing
         }
     ]
 }
-```
-
 **Permission Breakdown:**
 * **SSHKeyAccess**: Allows the instance to fetch SSH public keys from IAM for user access, if `iam_user_access` is enabled.
 * **HAInstanceDiscovery**: Allows the Anvil HA nodes to discover each other's state and tags.
@@ -175,17 +173,31 @@ If you are using the `hammerspace_profile_id` variable to provide a pre-existing
 1.  **Prerequisites**:
     * Install Terraform.
     * Install and configure the AWS CLI. Your credentials should be stored in `~/.aws/credentials`.
-2.  **Configure Authentication**: Open `main.tf` and set the `profile` argument in the `provider "aws"` block to match the profile name in your credentials file.
-    ```terraform
-    provider "aws" {
-      region  = var.region
-      profile = "your-profile-name"
-    }
-    ```
+2.  **Configure Local AWS Profile**: If you use a named profile from your `~/.aws/credentials` file for local development, follow the setup in the section below. Otherwise, Terraform will use environment variables.
 3.  **Initialize**: `terraform init`
 4.  **Configure**: Create a `terraform.tfvars` file to set your desired variables. At a minimum, you must provide `project_name`, `vpc_id`, `subnet_id`, `key_name`, and the required `*_ami` variables.
 5.  **Plan**: `terraform plan`
 6.  **Apply**: `terraform apply`
+
+### Local Development Setup (AWS Profile)
+To use a named profile from your `~/.aws/credentials` file for local runs without affecting the CI/CD pipeline, you should use a local override file. This prevents your personal credentials profile from being committed to source control.
+
+1.  **Create an override file**: In the root directory of the project, create a new file named `local_override.tf`.
+2.  **Add the provider configuration**: Place the following code inside `local_override.tf`, replacing `"your-profile-name"` with your actual profile name.
+    ```terraform
+    # SizingTerraform/local_override.tf
+    # This file is for local development overrides and should not be committed.
+
+    provider "aws" {
+      profile = "your-profile-name"
+    }
+    ```
+3.  **Add the file to `.gitignore`**: To ensure this file is never committed, add its name to your `.gitignore` file.
+    ```
+    # .gitignore
+    local_override.tf
+    ```
+When you run Terraform locally, it will automatically merge this file with `main.tf`, using your profile. The CI/CD system will not have this file and will correctly fall back to using the credentials stored in its environment secrets.
 
 ---
 
