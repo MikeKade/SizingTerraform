@@ -3,18 +3,11 @@
 provider "aws" {
   region = var.region
 
-  # The profile line is commented out for CI/CD compatibility.
-  # It will be defined in a local-only override file. You should
-  # not uncomment the following line.
-
-  # profile = "kade"
-
-  # Instead, build a file called
-  # local_override.tf and include the following:
+  # Uncomment the next line and fill in your profile name. This is used to lookup
+  # your credentials in $HOME/.aws/credentials
   #
-  # provider "aws" {
-  # profile = "kade"
-  # }
+  # If you choose to use environment variables instead, please leave this commented out
+  profile = "kade"
 }
 
 # Conditionally create the placement group if a name is provided
@@ -117,25 +110,26 @@ module "hammerspace" {
   placement_group_name = var.placement_group_name != "" ? aws_placement_group.this[0].name : ""
 
   # Hammerspace-specific variables
-  ami                           = var.hammerspace_ami
-  iam_admin_group_id            = var.hammerspace_iam_admin_group_id
-  profile_id                    = var.hammerspace_profile_id
-  anvil_security_group_id       = var.hammerspace_anvil_security_group_id
-  dsx_security_group_id         = var.hammerspace_dsx_security_group_id
+  ami                                  = var.hammerspace_ami
+  iam_admin_group_id                   = var.hammerspace_iam_admin_group_id
+  profile_id                           = var.hammerspace_profile_id
+  anvil_security_group_id              = var.hammerspace_anvil_security_group_id
+  dsx_security_group_id                = var.hammerspace_dsx_security_group_id
 
-  anvil_count                   = var.hammerspace_anvil_count
-  anvil_type                    = var.hammerspace_anvil_instance_type
-  anvil_meta_disk_size          = var.hammerspace_anvil_meta_disk_size
-  anvil_meta_disk_type          = var.hammerspace_anvil_meta_disk_type
-  anvil_meta_disk_iops          = var.hammerspace_anvil_meta_disk_iops
-  anvil_meta_disk_throughput    = var.hammerspace_anvil_meta_disk_throughput
+  anvil_count                          = var.hammerspace_anvil_count
+  sa_anvil_destruction   	       = var.hammerspace_sa_anvil_destruction
+  anvil_type                           = var.hammerspace_anvil_instance_type
+  anvil_meta_disk_size                 = var.hammerspace_anvil_meta_disk_size
+  anvil_meta_disk_type                 = var.hammerspace_anvil_meta_disk_type
+  anvil_meta_disk_iops                 = var.hammerspace_anvil_meta_disk_iops
+  anvil_meta_disk_throughput           = var.hammerspace_anvil_meta_disk_throughput
 
-  dsx_count                     = var.hammerspace_dsx_count
-  dsx_type                      = var.hammerspace_dsx_instance_type
-  dsx_ebs_size                  = var.hammerspace_dsx_ebs_size
-  dsx_ebs_type                  = var.hammerspace_dsx_ebs_type
-  dsx_ebs_iops                  = var.hammerspace_dsx_ebs_iops
-  dsx_ebs_throughput            = var.hammerspace_dsx_ebs_throughput
-  dsx_ebs_count                 = var.hammerspace_dsx_ebs_count
-  dsx_add_vols                  = var.hammerspace_dsx_add_vols
+  dsx_count                            = var.hammerspace_dsx_count
+  dsx_type                             = var.hammerspace_dsx_instance_type
+  dsx_ebs_size                         = var.hammerspace_dsx_ebs_size
+  dsx_ebs_type                         = var.hammerspace_dsx_ebs_type
+  dsx_ebs_iops                         = var.hammerspace_dsx_ebs_iops
+  dsx_ebs_throughput                   = var.hammerspace_dsx_ebs_throughput
+  dsx_ebs_count                        = var.hammerspace_dsx_ebs_count
+  dsx_add_vols                         = var.hammerspace_dsx_add_vols
 }

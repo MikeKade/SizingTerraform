@@ -257,6 +257,12 @@ variable "hammerspace_anvil_count" {
   }
 }
 
+variable "hammerspace_sa_anvil_destruction" {
+  description = "A safety switch to allow the destruction of a standalone Anvil. Must be set to true for 'terraform destroy' to succeed on a 1-Anvil deployment."
+  type        = bool
+  default     = false
+}
+
 variable "hammerspace_anvil_instance_type" {
   description = "Instance type for Anvil metadata server"
   type        = string

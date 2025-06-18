@@ -58,43 +58,69 @@ locals {
     local.create_ha_anvils && length(aws_instance.anvil1) > 0 ? aws_instance.anvil1[0].id : null
   )
 
-  # --- UserData String Construction (Simplified) ---
+  # --- UserData Configuration Maps ---
 
-  # Create a helper for the optional 'aws' config section
-  aws_config_string_part = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? "iam_admin_group: ${local.effective_iam_admin_group_name}" : ""
+  # Helper map for the conditional 'aws' block
+  aws_config_map = local.enable_iam_admin_group && local.effective_iam_admin_group_name != null ? {
+    iam_admin_group = local.effective_iam_admin_group_name
+  } : {}
 
-  # Standalone Anvil UserData
-  anvil_sa_userdata = local.create_standalone_anvil ? format(
-    "{cluster: {password_auth: False}, node: {hostname: %s, ha_mode: Standalone, networks: {eth0: {roles: [data, mgmt]}}}, aws: {%s}}",
-    "${var.project_name}Anvil",
-    local.aws_config_string_part
-  ) : null
+  # Map for Standalone Anvil
+  anvil_sa_config_map = {
+    cluster = {
+      password_auth = false
+    }
+    node = {
+      hostname = "${var.project_name}Anvil"
+      ha_mode  = "Standalone"
+      networks = {
+        eth0 = {
+          roles = ["data", "mgmt"]
+        }
+      }
+    }
+    aws = local.aws_config_map
+  }
 
-  # MODIFIED: Logic for HA Anvil UserData to match the new required format
-  # First, create the common string for the cluster definition
-  ha_cluster_definition_string = local.create_ha_anvils ? format(
-    "{cluster: {password_auth: False}, aws: {%s}, nodes: {'0': {hostname: %s, ha_mode: Primary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha], cluster_ips: [%s], ips: [%s]}}}, '1': {hostname: %s, ha_mode: Secondary, features: [metadata], networks: {eth0: {roles: [data, mgmt, ha], cluster_ips: [%s], ips: [%s]}}}}}",
-    local.aws_config_string_part,
-    "${var.project_name}Anvil1",
-    local.management_ip_for_url,
-    length(aws_network_interface.anvil1_ha_ni) > 0 ? aws_network_interface.anvil1_ha_ni[0].private_ip : "PEER_IP_PENDING",
-    "${var.project_name}Anvil2",
-    local.management_ip_for_url,
-    length(aws_network_interface.anvil2_ha_ni) > 0 ? aws_network_interface.anvil2_ha_ni[0].private_ip : "PEER_IP_PENDING"
-  ) : ""
-  
-  # Then, construct the final UserData for each node by prepending the unique node_index
-  anvil1_ha_userdata = local.create_ha_anvils ? format(
-    "{node_index: '0', %s", 
-    trimprefix(local.ha_cluster_definition_string, "{")
-  ) : null
+  # MODIFIED: Base map for HA Anvils with new network fields
+  anvil_ha_config_map = {
+    cluster = {
+      password_auth = false
+    }
+    aws = local.aws_config_map
+    nodes = {
+      "0" = {
+        hostname = "${var.project_name}Anvil1"
+        ha_mode  = "Primary"
+        features = ["metadata"]
+        networks = {
+          eth0 = {
+            roles       = ["data", "mgmt", "ha"]
+            ips         = length(aws_network_interface.anvil1_ha_ni) > 0 ? ["${aws_network_interface.anvil1_ha_ni[0].private_ip}/24"] : null
+            cluster_ips = local.anvil2_ha_ni_secondary_ip != null ? ["${local.anvil2_ha_ni_secondary_ip}/24"] : null
+          }
+        }
+      }
+      "1" = {
+        hostname = "${var.project_name}Anvil2"
+        ha_mode  = "Secondary"
+        features = ["metadata"]
+        networks = {
+          eth0 = {
+            roles       = ["data", "mgmt", "ha"]
+            ips         = length(aws_network_interface.anvil2_ha_ni) > 0 ? ["${aws_network_interface.anvil2_ha_ni[0].private_ip}/24"] : null
+            cluster_ips = local.anvil2_ha_ni_secondary_ip != null ? ["${local.anvil2_ha_ni_secondary_ip}/24"] : null
+          }
+        }
+      }
+    }
+  }
 
-  anvil2_ha_userdata = local.create_ha_anvils ? format(
-    "{node_index: '1', %s", 
-    trimprefix(local.ha_cluster_definition_string, "{")
-  ) : null
-
-  # --- DSX Node Configuration Helper ---
-  # This creates the string that defines the Anvil nodes for the DSX config.
-  dsx_anvils_nodes_config_string = local.create_standalone_anvil ? "'1': {hostname: ${var.project_name}Anvil, features: [metadata]}" : (local.create_ha_anvils ? "'1': {hostname: ${var.project_name}Anvil1, features: [metadata]}, '2': {hostname: ${var.project_name}Anvil2, features: [metadata]}" : "")
+  # Map of Anvil nodes for DSX configuration
+  anvil_nodes_map_for_dsx = local.create_standalone_anvil ? {
+    "1" = { hostname = "${var.project_name}Anvil", features = ["metadata"] }
+    } : (local.create_ha_anvils ? {
+    "1" = { hostname = "${var.project_name}Anvil1", features = ["metadata"] },
+    "2" = { hostname = "${var.project_name}Anvil2", features = ["metadata"] }
+    } : {})
 }

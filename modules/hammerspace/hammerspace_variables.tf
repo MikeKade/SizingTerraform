@@ -80,6 +80,12 @@ variable "anvil_count" {
   default     = 1
 }
 
+variable "sa_anvil_destruction" {
+  description = "Set to true to allow the standalone Anvil to be destroyed. This is a safety mechanism to prevent accidental destruction."
+  type        = bool
+  default     = false
+}
+
 variable "anvil_type" {
   description = "EC2 instance type for Anvil metadata servers (e.g., 'm5zn.12xlarge')."
   type        = string

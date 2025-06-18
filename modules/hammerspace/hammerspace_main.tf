@@ -74,12 +74,12 @@ resource "aws_security_group" "anvil_data_sg" {
   tags        = local.common_tags
 
   egress {
-    from_port	= 0
-    to_port	= 0
-    protocol	= "-1"
-    cidr_blocks	= [var.sec_ip_cidr]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.sec_ip_cidr]
   }
-  
+
   ingress {
     protocol    = "icmp"
     from_port   = -1
@@ -158,12 +158,12 @@ resource "aws_security_group" "dsx_sg" {
   tags        = local.common_tags
 
   egress {
-    from_port	= 0
-    to_port	= 0
-    protocol	= "-1"
-    cidr_blocks	= [var.sec_ip_cidr]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.sec_ip_cidr]
   }
-  
+
   ingress {
     protocol    = "icmp"
     from_port   = -1
@@ -249,10 +249,15 @@ resource "aws_instance" "anvil" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = base64encode(local.anvil_sa_userdata)
+  user_data_base64       = base64encode(jsonencode(local.anvil_sa_config_map))
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
-  
-  # REMOVED the incorrect lifecycle block from here
+
+  lifecycle {
+    precondition {
+      condition     = var.sa_anvil_destruction == true
+      error_message = "The standalone Anvil is protected. To destroy it, set 'hammerspace_allow_standalone_anvil_destruction = true'."
+    }
+  }
 
   network_interface {
     device_index         = 0
@@ -296,10 +301,9 @@ resource "aws_instance" "anvil1" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = base64encode(local.anvil1_ha_userdata)
+  user_data_base64       = base64encode(jsonencode(merge(local.anvil_ha_config_map, { "node_index" = "0" })))
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
 
-  # ADDED the correct lifecycle block here
   lifecycle {
     precondition {
       condition     = length(aws_instance.anvil) == 0
@@ -349,10 +353,9 @@ resource "aws_instance" "anvil2" {
   availability_zone      = var.availability_zone
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
-  user_data_base64       = base64encode(local.anvil2_ha_userdata)
+  user_data_base64       = base64encode(jsonencode(merge(local.anvil_ha_config_map, { "node_index" = "1" })))
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
 
-  # ADDED the correct lifecycle block here
   lifecycle {
     precondition {
       condition     = length(aws_instance.anvil) == 0
@@ -404,15 +407,31 @@ resource "aws_instance" "dsx" {
   key_name               = local.provides_key_name ? var.key_name : null
   iam_instance_profile   = local.effective_instance_profile_ref
   placement_group        = var.placement_group_name != "" ? var.placement_group_name : null
-  user_data_base64 = base64encode(format(
-    "{cluster: {password_auth: False, password: %s, metadata: {ips: [%s/20]}}, nodes: {'0': {hostname: %s, features: [storage, portal], networks: {eth0: {roles: [data, mgmt]}}, add_volumes: %s}, %s}, aws: {%s}}",
-    local.effective_anvil_id_for_dsx_password,
-    local.effective_anvil_ip_for_dsx_metadata,
-    "${var.project_name}DSX${count.index + 1}",
-    local.dsx_add_volumes_bool ? "True" : "False",
-    local.dsx_anvils_nodes_config_string,
-    local.aws_config_string_part
-  ))
+  user_data_base64 = base64encode(jsonencode({
+    cluster = {
+      password_auth = false,
+      password      = local.effective_anvil_id_for_dsx_password,
+      metadata = {
+        ips = (local.effective_anvil_ip_for_dsx_metadata != null ? ["${local.effective_anvil_ip_for_dsx_metadata}/20"] : [])
+      }
+    }
+    nodes = merge(
+      {
+        "0" = {
+          hostname    = "${var.project_name}DSX${count.index + 1}"
+          features    = ["storage", "portal"]
+          add_volumes = local.dsx_add_volumes_bool
+          networks = {
+            eth0 = {
+              roles = ["data", "mgmt"]
+            }
+          }
+        }
+      },
+      local.anvil_nodes_map_for_dsx
+    )
+    aws = local.aws_config_map
+  }))
   network_interface {
     device_index         = 0
     network_interface_id = aws_network_interface.dsx_ni[count.index].id

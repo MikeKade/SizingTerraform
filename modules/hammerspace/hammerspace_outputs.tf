@@ -54,7 +54,7 @@ output "anvil_instances" {
 
 output "dsx_instances" {
   description = "Details of deployed DSX instances."
-  sensitive   = true # <-- ADDED
+  sensitive   = true
   value = [
     for i, inst in aws_instance.dsx : {
       index           = i + 1
@@ -69,6 +69,11 @@ output "dsx_instances" {
   ]
 }
 
+output "dsx_private_ips" {
+  description = "A list of the private IP addresses of the deployed DSX instances."
+  value       = [for inst in aws_instance.dsx : inst.private_ip]
+}
+
 output "primary_management_anvil_instance_id" {
   description = "Instance ID of the primary Anvil node (Anvil for Standalone, Anvil1 for HA)."
   value = coalesce(
@@ -79,25 +84,19 @@ output "primary_management_anvil_instance_id" {
 }
 
 output "anvil_standalone_userdata_rendered" {
-  description = "Rendered YAML UserData for the Standalone Anvil instance (if created)."
-  value       = local.anvil_sa_userdata
+  description = "Rendered UserData for the Standalone Anvil instance (if created)."
+  value       = jsonencode(local.anvil_sa_config_map)
   sensitive   = true
 }
 
 output "anvil_ha_node1_userdata_rendered" {
-  description = "Rendered YAML UserData for Anvil HA Node 1 (if created)."
-  value       = local.anvil1_ha_userdata
+  description = "Rendered UserData for Anvil HA Node 1 (if created)."
+  value       = jsonencode(merge(local.anvil_ha_config_map, { "node_index" = "0" }))
   sensitive   = true
 }
 
 output "anvil_ha_node2_userdata_rendered" {
-  description = "Rendered YAML UserData for Anvil HA Node 2 (if created)."
-  value       = local.anvil2_ha_userdata
+  description = "Rendered UserData for Anvil HA Node 2 (if created)."
+  value       = jsonencode(merge(local.anvil_ha_config_map, { "node_index" = "1" }))
   sensitive   = true
-}
-
-# NEW output for just the private IPs
-output "dsx_private_ips" {
-  description = "A list of the private IP addresses of the deployed DSX instances."
-  value       = [for inst in aws_instance.dsx : inst.private_ip]
 }
