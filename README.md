@@ -120,6 +120,7 @@ If you are using the `hammerspace_profile_id` variable to provide a pre-existing
 5.  Provide the name of the **Instance Profile** to the user running Terraform.
 
 **Required IAM Policy JSON:**
+```
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -160,6 +161,8 @@ If you are using the `hammerspace_profile_id` variable to provide a pre-existing
         }
     ]
 }
+```
+
 **Permission Breakdown:**
 * **SSHKeyAccess**: Allows the instance to fetch SSH public keys from IAM for user access, if `iam_user_access` is enabled.
 * **HAInstanceDiscovery**: Allows the Anvil HA nodes to discover each other's state and tags.
@@ -184,6 +187,7 @@ To use a named profile from your `~/.aws/credentials` file for local runs withou
 
 1.  **Create an override file**: In the root directory of the project, create a new file named `local_override.tf`.
 2.  **Add the provider configuration**: Place the following code inside `local_override.tf`, replacing `"your-profile-name"` with your actual profile name.
+
     ```terraform
     # SizingTerraform/local_override.tf
     # This file is for local development overrides and should not be committed.
