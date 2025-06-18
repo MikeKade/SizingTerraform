@@ -196,11 +196,6 @@ To use a named profile from your `~/.aws/credentials` file for local runs withou
       profile = "your-profile-name"
     }
     ```
-3.  **Add the file to `.gitignore`**: To ensure this file is never committed, add its name to your `.gitignore` file.
-    ```
-    # .gitignore
-    local_override.tf
-    ```
 When you run Terraform locally, it will automatically merge this file with `main.tf`, using your profile. The CI/CD system will not have this file and will correctly fall back to using the credentials stored in its environment secrets.
 
 ---
