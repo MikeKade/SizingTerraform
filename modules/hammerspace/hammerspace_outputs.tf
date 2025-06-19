@@ -5,7 +5,7 @@ output "management_ip" {
 
 output "management_url" {
   description = "Management URL for the Hammerspace cluster."
-  value       = local.management_ip_for_url != "N/A - Anvil instance details not available." ? "https://${local.management_ip_for_url}" : "N/A"
+  value       = local.management_ip_for_url != "N/A - Anvil instance details not available." ? "https://${local.management_ip_for_url}:8443" : "N/A"
 }
 
 output "anvil_instances" {
