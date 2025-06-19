@@ -393,4 +393,16 @@ variable "runner_target_user" {
   default     = "ubuntu"
 }
 
+variable "volume_group_name" {
+  description = "Volume group name for Anvil"
+  type        = string
+  default     = "vg-auto"
+}
+
+variable "share_name" {
+  description = "Share name for Anvil"
+  type        = string
+}
+
+
 
