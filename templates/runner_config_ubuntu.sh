@@ -5,14 +5,6 @@
 # You can modify this based upon your needs
 
 
-
-# Create /tmp/anvil.yml with the specified configuration
-cat > /tmp/anvil.yml << EOF
-data_cluster_mgmt_ip: "${MGMT_IP}"
-hsuser: admin 
-password: "${ANVIL_ID}"
-EOF
-
 sudo apt-get -y update
 sudo apt-get install -y pip git bc ansible screen net-tools jq
 
@@ -20,6 +12,8 @@ cat > /tmp/anvil.yml << EOF
 data_cluster_mgmt_ip: "${MGMT_IP}"
 hsuser: admin 
 password: "${ANVIL_ID}"
+volume_group_name: "${VG_NAME}"
+share_name: "{$SHARE_NAME}"
 EOF
 
 echo '${STORAGE_INSTANCES}'
@@ -35,12 +29,34 @@ echo '${STORAGE_INSTANCES}' | jq -r '
   )[]
 ' > /tmp/nodes.yml
 
+echo 'share:
+  name: "{{ share_name }}"
+  path: "/{{ share_name }}"
+  maxShareSize: 0
+  alertThreshold: 90
+  maxShareSizeType: TB
+  smbAliases: []
+  exportOptions:
+  - subnet: "*"
+    rootSquash: false
+    accessPermissions: RW
+  shareSnapshots: []
+  shareObjectives:
+  - objective:
+      name: no-atime
+    applicability: "TRUE"
+  - objective:
+      name: confine-to-{{ vg_name }}
+    applicability: "TRUE"
+  smbBrowsable: true
+  shareSizeLimit: 0' > /tmp/share.yml
+
 # Upgrade all the installed packages
 
 sudo apt-get -y upgrade
 
 sudo git clone https://github.com/BeratUlualan/HS-Terraform.git /tmp/HS-Terraform
-sudo ansible-playbook /tmp/HS-Terraform/hs-playbook.yml -e @/tmp/anvil.yml -e @/tmp/nodes.yml
+sudo ansible-playbook /tmp/HS-Terraform/hs-aistudio.yml -e @/tmp/anvil.yml -e @/tmp/nodes.yml -e @/tmp/share.yml
 
 
 # WARNING!!
