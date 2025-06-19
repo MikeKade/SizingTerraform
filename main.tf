@@ -159,4 +159,6 @@ module "runner" {
   boot_volume_type = var.runner_boot_volume_type
   user_data        = var.runner_user_data
   target_user      = var.runner_target_user
+  volume_group_name = var.volume_group_name
+  share_name = var.share_name
 }
