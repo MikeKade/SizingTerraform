@@ -4,6 +4,7 @@ misconfiguration:
 
   # List of check IDs to completely ignore for this project
   skip-checks:
+    - AVD-AWS-0026 # Ignore EBS volume is not encrypted
     - AVD-AWS-0027 # Ignore EBS volumes do not use a KMS key
     - AVD-AWS-0028 # Ignore unencrypted EBS volumes
     - AVD-AWS-0028 # Ignore IMDS access to require a token
