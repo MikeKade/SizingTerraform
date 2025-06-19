@@ -18,9 +18,11 @@ locals {
     SSH_KEYS    = join("\n", local.ssh_public_keys),
     TARGET_USER = var.target_user,
     TARGET_HOME = "/home/${var.target_user}",
-    MGMT_IP = "${var.mgmt_ip[0]}"
-    ANVIL_ID = "${var.anvil_instances[0].id}"
-    STORAGE_INSTANCES = jsonencode(var.storage_instances)
+    MGMT_IP = "${var.mgmt_ip[0]}",
+    ANVIL_ID = "${var.anvil_instances[0].id}",
+    STORAGE_INSTANCES = jsonencode(var.storage_instances),
+    VG_NAME = "${var.volume_group_name}",
+    SHARE_NAME = "${var.share_name}"
   }) : null
 
   resource_prefix = "${var.project_name}-runner" 
