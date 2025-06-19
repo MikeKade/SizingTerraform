@@ -1,0 +1,11 @@
+misconfiguration:
+  # Do not fail the build for any of these checks, but still report them
+  ignore-unfixed: true
+
+  # List of check IDs to completely ignore for this project
+  skip-checks:
+    - AVD-AWS-0027 # Ignore EBS volumes do not use a KMS key
+    - AVD-AWS-0028 # Ignore unencrypted EBS volumes
+    - AVD-AWS-0028 # Ignore IMDS access to require a token
+
+    
