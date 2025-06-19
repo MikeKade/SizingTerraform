@@ -13,7 +13,7 @@ data_cluster_mgmt_ip: "${MGMT_IP}"
 hsuser: admin 
 password: "${ANVIL_ID}"
 volume_group_name: "${VG_NAME}"
-share_name: "{$SHARE_NAME}"
+share_name: "${SHARE_NAME}"
 EOF
 
 echo '${STORAGE_INSTANCES}'
