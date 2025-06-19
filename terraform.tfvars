@@ -144,3 +144,5 @@ runner_boot_volume_size		= 40
 runner_boot_volume_type		= "gp2"
 runner_user_data 		 	= "./templates/runner_config_ubuntu.sh"
 runner_target_user 		 	= "ubuntu"
+volume_group_name = "vg_auto"
+share_name = "test01"
