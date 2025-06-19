@@ -46,7 +46,7 @@ echo 'share:
       name: no-atime
     applicability: "TRUE"
   - objective:
-      name: confine-to-{{ vg_name }}
+      name: confine-to-{{ volume_group_name }}
     applicability: "TRUE"
   smbBrowsable: true
   shareSizeLimit: 0' > /tmp/share.yml
